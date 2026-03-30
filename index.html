@@ -2060,17 +2060,142 @@
                 </div>
             </div>
 
-            <div class="reveal bg-white rounded-2xl shadow-lg border border-gray-200 p-4 md:p-8">
-                <div class="flex justify-center">
-                    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSe-9IWyzOUFaWjsTx5XmhmcZAx5VZj1oJZL9nSvM4gc5D2fFQ/viewform?embedded=true"
-                            width="100%" height="2800" frameborder="0" marginheight="0" marginwidth="0"
-                            style="max-width: 640px; min-height: 600px; border: none;"
-                            loading="lazy"
-                            title="お問い合わせフォーム">読み込んでいます…</iframe>
-                </div>
-                <div class="mt-4 text-center">
-                    <p class="text-xs text-gray-400"><i class="fas fa-info-circle mr-1"></i>フォームが表示されない場合は<a href="https://docs.google.com/forms/d/e/1FAIpQLSe-9IWyzOUFaWjsTx5XmhmcZAx5VZj1oJZL9nSvM4gc5D2fFQ/viewform" target="_blank" rel="noopener noreferrer" class="text-primary underline">こちら</a>から直接アクセスしてください。</p>
-                </div>
+            <!-- 自前フォーム（GAS連携） -->
+            <div class="reveal bg-white rounded-2xl shadow-lg border border-gray-200 p-6 md:p-10">
+                <form id="contact-form" class="max-w-2xl mx-auto space-y-6" novalidate>
+                    <!-- 送信状態表示 -->
+                    <div id="form-status" class="hidden"></div>
+
+                    <!-- メールアドレス -->
+                    <div class="form-group">
+                        <label for="f-email" class="block text-sm font-bold text-gray-700 mb-1">メールアドレス <span class="text-red-500">*</span></label>
+                        <input type="email" id="f-email" name="email" required placeholder="example@example.com"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition text-base">
+                    </div>
+
+                    <!-- 法人名・事業所名 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="f-corp" class="block text-sm font-bold text-gray-700 mb-1">法人名 <span class="text-red-500">*</span></label>
+                            <input type="text" id="f-corp" name="corp" required placeholder="株式会社○○"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition text-base">
+                        </div>
+                        <div class="form-group">
+                            <label for="f-office" class="block text-sm font-bold text-gray-700 mb-1">事業所名</label>
+                            <input type="text" id="f-office" name="office" placeholder="○○事業所"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition text-base">
+                        </div>
+                    </div>
+
+                    <!-- 郵便番号・都道府県 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="f-zip" class="block text-sm font-bold text-gray-700 mb-1">郵便番号（ハイフンなし） <span class="text-red-500">*</span></label>
+                            <input type="text" id="f-zip" name="zip" required placeholder="1234567" pattern="\d{7}" maxlength="7"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition text-base">
+                        </div>
+                        <div class="form-group">
+                            <label for="f-pref" class="block text-sm font-bold text-gray-700 mb-1">都道府県 <span class="text-red-500">*</span></label>
+                            <select id="f-pref" name="prefecture" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition text-base bg-white">
+                                <option value="">選択してください</option>
+                                <option>北海道</option><option>青森県</option><option>岩手県</option><option>宮城県</option><option>秋田県</option><option>山形県</option><option>福島県</option>
+                                <option>茨城県</option><option>栃木県</option><option>群馬県</option><option>埼玉県</option><option>千葉県</option><option>東京都</option><option>神奈川県</option>
+                                <option>新潟県</option><option>富山県</option><option>石川県</option><option>福井県</option><option>山梨県</option><option>長野県</option>
+                                <option>岐阜県</option><option>静岡県</option><option>愛知県</option><option>三重県</option>
+                                <option>滋賀県</option><option>京都府</option><option>大阪府</option><option>兵庫県</option><option>奈良県</option><option>和歌山県</option>
+                                <option>鳥取県</option><option>島根県</option><option>岡山県</option><option>広島県</option><option>山口県</option>
+                                <option>徳島県</option><option>香川県</option><option>愛媛県</option><option>高知県</option>
+                                <option>福岡県</option><option>佐賀県</option><option>長崎県</option><option>熊本県</option><option>大分県</option><option>宮崎県</option><option>鹿児島県</option><option>沖縄県</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 電話番号・担当者名 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="f-tel" class="block text-sm font-bold text-gray-700 mb-1">電話番号（日中連絡可能な番号）</label>
+                            <input type="tel" id="f-tel" name="phone" placeholder="09012345678"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition text-base">
+                        </div>
+                        <div class="form-group">
+                            <label for="f-name" class="block text-sm font-bold text-gray-700 mb-1">ご担当者様氏名 <span class="text-red-500">*</span></label>
+                            <input type="text" id="f-name" name="name" required placeholder="山田 太郎"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition text-base">
+                        </div>
+                    </div>
+
+                    <!-- 役職 -->
+                    <div class="form-group">
+                        <label for="f-role" class="block text-sm font-bold text-gray-700 mb-1">ご担当者様役職 <span class="text-red-500">*</span></label>
+                        <select id="f-role" name="role" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition text-base bg-white">
+                            <option value="">選択してください</option>
+                            <option>法人代表者（理事長など）</option>
+                            <option>役員（常務、専務など）</option>
+                            <option>本部長・部長クラス</option>
+                            <option>課長・マネージャークラス</option>
+                            <option>施設長・事業所長</option>
+                            <option>介護職員・担当者</option>
+                            <option>その他</option>
+                        </select>
+                    </div>
+
+                    <!-- ご関心・ご相談内容 -->
+                    <div class="form-group">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">介護情報基盤に関する主なご関心/ご相談内容（複数選択可） <span class="text-red-500">*</span></label>
+                        <div class="space-y-2">
+                            <label class="flex items-start gap-3 p-3 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-primary cursor-pointer transition">
+                                <input type="checkbox" name="interest" value="伴走支援を申し込みたい" class="mt-0.5 w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary">
+                                <span class="text-sm text-gray-700">伴走支援を申し込みたい</span>
+                            </label>
+                            <label class="flex items-start gap-3 p-3 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-primary cursor-pointer transition">
+                                <input type="checkbox" name="interest" value="介護情報基盤や伴走支援について詳しく教えてほしい" class="mt-0.5 w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary">
+                                <span class="text-sm text-gray-700">介護情報基盤や伴走支援について詳しく教えてほしい</span>
+                            </label>
+                            <label class="flex items-start gap-3 p-3 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-primary cursor-pointer transition">
+                                <input type="checkbox" name="interest" value="ケアプランデータ連携システムの導入をしたい" class="mt-0.5 w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary">
+                                <span class="text-sm text-gray-700">ケアプランデータ連携システムの導入をしたい</span>
+                            </label>
+                            <label class="flex items-start gap-3 p-3 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-primary cursor-pointer transition">
+                                <input type="checkbox" name="interest" value="介護事業所のICT活用・DX化について相談したい" class="mt-0.5 w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary">
+                                <span class="text-sm text-gray-700">介護事業所のICT活用・DX化について相談したい</span>
+                            </label>
+                            <label class="flex items-start gap-3 p-3 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-primary cursor-pointer transition">
+                                <input type="checkbox" name="interest" value="その他" class="mt-0.5 w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary">
+                                <span class="text-sm text-gray-700">その他</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- お問い合わせ内容 -->
+                    <div class="form-group">
+                        <label for="f-message" class="block text-sm font-bold text-gray-700 mb-1">お問い合わせ内容（具体的なご相談事項などご記入ください）</label>
+                        <textarea id="f-message" name="message" rows="5" placeholder="ご相談内容をご記入ください"
+                                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition text-base resize-y"></textarea>
+                    </div>
+
+                    <!-- プライバシーポリシー同意 -->
+                    <div class="form-group bg-gray-50 rounded-xl p-4 border border-gray-200">
+                        <label class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" id="f-privacy" name="privacy" required class="mt-1 w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary">
+                            <span class="text-sm text-gray-700">
+                                弊社の「<a href="https://279279.net/information-security-guidelines" target="_blank" rel="noopener noreferrer" class="text-primary underline hover:text-primary_hover">情報セキュリティガイドライン（プライバシーポリシー）</a>」を確認し、同意します。
+                                <span class="text-red-500">*</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- 送信ボタン -->
+                    <div class="text-center pt-2">
+                        <button type="submit" id="form-submit-btn"
+                                class="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-orange-600 text-white font-bold text-lg px-12 py-4 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                            <i class="fas fa-paper-plane"></i>
+                            送信する
+                        </button>
+                        <p class="text-xs text-gray-400 mt-3"><i class="fas fa-lock mr-1"></i>SSL暗号化通信で安全に送信されます</p>
+                    </div>
+                </form>
             </div>
         </div>
     </section>
@@ -2462,6 +2587,94 @@
         }
         update();
         setInterval(update, 60000);
+    })();
+
+    // 11. お問い合わせフォーム送信（GAS連携）
+    (function() {
+        const form = document.getElementById('contact-form');
+        const statusEl = document.getElementById('form-status');
+        const submitBtn = document.getElementById('form-submit-btn');
+        if (!form) return;
+
+        // GASウェブアプリURL（デプロイID: AKfycbxUKIV9KItc0qf-qTeso0kKSbYvPZH728WmrEmoughI5CMdHCOvs8M89dp6eJj1HDvo）
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxUKIV9KItc0qf-qTeso0kKSbYvPZH728WmrEmoughI5CMdHCOvs8M89dp6eJj1HDvo/exec';
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // バリデーション
+            const required = form.querySelectorAll('[required]');
+            let valid = true;
+            required.forEach(function(el) {
+                if (!el.value.trim()) { el.classList.add('border-red-500'); valid = false; }
+                else { el.classList.remove('border-red-500'); }
+            });
+            // チェックボックス（関心事項）
+            const interests = form.querySelectorAll('input[name="interest"]:checked');
+            if (interests.length === 0) {
+                valid = false;
+                form.querySelector('input[name="interest"]').closest('.form-group').classList.add('ring-2', 'ring-red-500', 'rounded-xl');
+            }
+            // プライバシーポリシー
+            if (!form.querySelector('#f-privacy').checked) {
+                valid = false;
+                form.querySelector('#f-privacy').closest('label').classList.add('ring-2', 'ring-red-500');
+            }
+            if (!valid) {
+                statusEl.className = 'bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm text-center mb-4';
+                statusEl.innerHTML = '<i class="fas fa-exclamation-circle mr-1"></i>必須項目をすべてご入力ください。';
+                statusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+            if (!GAS_URL) {
+                statusEl.className = 'bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-xl p-4 text-sm text-center mb-4';
+                statusEl.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>フォームの送信先が未設定です。管理者にお問い合わせください。';
+                return;
+            }
+
+            // 送信中UI
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 送信中...';
+
+            // データ収集
+            var interestValues = [];
+            interests.forEach(function(cb) { interestValues.push(cb.value); });
+
+            var payload = {
+                email: form.querySelector('#f-email').value,
+                corp: form.querySelector('#f-corp').value,
+                office: form.querySelector('#f-office').value,
+                zip: form.querySelector('#f-zip').value,
+                prefecture: form.querySelector('#f-pref').value,
+                phone: form.querySelector('#f-tel').value,
+                name: form.querySelector('#f-name').value,
+                role: form.querySelector('#f-role').value,
+                interest: interestValues.join(', '),
+                message: form.querySelector('#f-message').value,
+                privacy: '同意済み',
+                timestamp: new Date().toLocaleString('ja-JP')
+            };
+
+            fetch(GAS_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(function() {
+                statusEl.className = 'bg-green-50 border border-green-200 text-green-700 rounded-xl p-6 text-center';
+                statusEl.innerHTML = '<div class="text-4xl mb-3"><i class="fas fa-check-circle"></i></div>' +
+                    '<p class="font-bold text-lg mb-1">お問い合わせありがとうございます</p>' +
+                    '<p class="text-sm">内容を確認のうえ、担当者よりご連絡いたします。</p>';
+                form.reset();
+                form.querySelectorAll('input, select, textarea, button').forEach(function(el) { el.style.display = 'none'; });
+                statusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }).catch(function() {
+                statusEl.className = 'bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm text-center mb-4';
+                statusEl.innerHTML = '<i class="fas fa-exclamation-circle mr-1"></i>送信に失敗しました。お手数ですがお電話にてお問い合わせください。';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 送信する';
+            });
+        });
     })();
     </script>
 </body>
