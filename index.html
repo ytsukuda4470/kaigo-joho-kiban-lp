@@ -2141,6 +2141,69 @@
                         </select>
                     </div>
 
+                    <!-- 事業所情報 -->
+                    <div class="bg-blue-50 rounded-xl p-5 border border-blue-200">
+                        <p class="text-sm font-bold text-primary mb-4"><i class="fas fa-building mr-1"></i>事業所についてお聞かせください</p>
+                        <div class="space-y-4">
+                            <!-- 対象事業所数 -->
+                            <div class="form-group">
+                                <label for="f-office-count" class="block text-sm font-bold text-gray-700 mb-1">対象事業所数（事業所番号数）</label>
+                                <input type="number" id="f-office-count" name="officeCount" min="1" placeholder="例: 3"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition text-base bg-white">
+                                <p class="text-xs text-gray-500 mt-1">介護保険事業所番号をお持ちの事業所の数をご入力ください</p>
+                            </div>
+                            <!-- ケアプランデータ連携システム利用の有無 -->
+                            <div class="form-group">
+                                <label class="block text-sm font-bold text-gray-700 mb-2">ケアプランデータ連携システムの利用</label>
+                                <div class="flex flex-wrap gap-3">
+                                    <label class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 hover:bg-white cursor-pointer transition bg-white">
+                                        <input type="radio" name="careplanLinkage" value="利用中" class="w-4 h-4 text-primary border-gray-300 focus:ring-primary">
+                                        <span class="text-sm text-gray-700">利用中</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 hover:bg-white cursor-pointer transition bg-white">
+                                        <input type="radio" name="careplanLinkage" value="利用予定" class="w-4 h-4 text-primary border-gray-300 focus:ring-primary">
+                                        <span class="text-sm text-gray-700">利用予定</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 hover:bg-white cursor-pointer transition bg-white">
+                                        <input type="radio" name="careplanLinkage" value="未利用" class="w-4 h-4 text-primary border-gray-300 focus:ring-primary">
+                                        <span class="text-sm text-gray-700">未利用</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 hover:bg-white cursor-pointer transition bg-white">
+                                        <input type="radio" name="careplanLinkage" value="わからない" class="w-4 h-4 text-primary border-gray-300 focus:ring-primary">
+                                        <span class="text-sm text-gray-700">わからない</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- 国保連伝送の方法 -->
+                            <div class="form-group">
+                                <label for="f-densou" class="block text-sm font-bold text-gray-700 mb-1">国保連への伝送方法</label>
+                                <select id="f-densou" name="densou"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition text-base bg-white">
+                                    <option value="">選択してください</option>
+                                    <optgroup label="国保中央会">
+                                        <option value="国保中央会 伝送通信ソフト">国保中央会 伝送通信ソフト</option>
+                                    </optgroup>
+                                    <optgroup label="介護ソフトの伝送機能">
+                                        <option value="カイポケ">カイポケ</option>
+                                        <option value="ほのぼの（NDソフトウェア）">ほのぼの（NDソフトウェア）</option>
+                                        <option value="ワイズマン">ワイズマン</option>
+                                        <option value="介護大臣（応研）">介護大臣（応研）</option>
+                                        <option value="ケアカルテ（ケアコネクトジャパン）">ケアカルテ（ケアコネクトジャパン）</option>
+                                        <option value="まもる君クラウド（インタートラスト）">まもる君クラウド（インタートラスト）</option>
+                                        <option value="ナーシングネットプラスワン">ナーシングネットプラスワン</option>
+                                        <option value="その他の介護ソフト">その他の介護ソフト</option>
+                                    </optgroup>
+                                    <optgroup label="伝送代行サービス">
+                                        <option value="けあ蔵（日本事務器）">けあ蔵（日本事務器）</option>
+                                        <option value="おくる君">おくる君</option>
+                                        <option value="その他の伝送代行サービス">その他の伝送代行サービス</option>
+                                    </optgroup>
+                                    <option value="わからない">わからない</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- ご関心・ご相談内容 -->
                     <div class="form-group">
                         <label class="block text-sm font-bold text-gray-700 mb-2">介護情報基盤に関する主なご関心/ご相談内容（複数選択可） <span class="text-red-500">*</span></label>
@@ -2640,6 +2703,8 @@
             var interestValues = [];
             interests.forEach(function(cb) { interestValues.push(cb.value); });
 
+            var careplanRadio = form.querySelector('input[name="careplanLinkage"]:checked');
+
             var payload = {
                 email: form.querySelector('#f-email').value,
                 corp: form.querySelector('#f-corp').value,
@@ -2649,6 +2714,9 @@
                 phone: form.querySelector('#f-tel').value,
                 name: form.querySelector('#f-name').value,
                 role: form.querySelector('#f-role').value,
+                officeCount: form.querySelector('#f-office-count').value,
+                careplanLinkage: careplanRadio ? careplanRadio.value : '',
+                densou: form.querySelector('#f-densou').value,
                 interest: interestValues.join(', '),
                 message: form.querySelector('#f-message').value,
                 privacy: '同意済み',
