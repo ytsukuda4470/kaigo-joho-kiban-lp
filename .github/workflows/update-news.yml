@@ -75,7 +75,32 @@ jobs:
           fi
 
       # ──────────────────────────────────────────
-      # 5. Google Chat 通知
+      # 5. Firebase Hosting へ自動デプロイ（LP）
+      # ──────────────────────────────────────────
+      - name: Setup Node.js
+        if: steps.commit.outputs.changed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Firebase CLI
+        if: steps.commit.outputs.changed == 'true'
+        run: npm install -g firebase-tools
+
+      - name: Deploy LP Hosting
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          if [ -z "$FIREBASE_TOKEN" ]; then
+            echo "::error::FIREBASE_TOKEN が未設定です。GitHub Secrets に FIREBASE_TOKEN を登録してください。"
+            exit 1
+          fi
+          firebase use kaigo-kiban-pm --token "$FIREBASE_TOKEN"
+          firebase deploy --only hosting:lp --token "$FIREBASE_TOKEN" --non-interactive
+
+      # ──────────────────────────────────────────
+      # 6. Google Chat 通知
       # ──────────────────────────────────────────
       - name: Send Google Chat notification
         if: steps.commit.outputs.changed == 'true' || github.event.inputs.force_notify == 'true'
@@ -85,7 +110,7 @@ jobs:
           echo '${{ steps.scraper.outputs.result }}' | python3 scripts/notify_gchat.py
 
       # ──────────────────────────────────────────
-      # 6. 結果サマリー
+      # 7. 結果サマリー
       # ──────────────────────────────────────────
       - name: Summary
         if: always()
