@@ -3,14 +3,19 @@
 介護情報基盤 ニュース自動収集スクリプト
 - Joint介護, GemMed, 介護経営ドットコム をスクレイピング
 - index.html の NEWS_ITEMS_START〜END を更新
+- index.html の REVISION_ITEMS_START〜END を更新
 - 新着記事リストを JSON で stdout に出力（GitHub Actions で webhook 通知に利用）
 """
 
 import json
+import os
 import re
+import subprocess
 import sys
 from datetime import datetime, timezone, timedelta
+from html import escape
 from pathlib import Path
+from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
@@ -42,7 +47,7 @@ FIXED_ARTICLES = [
 ]
 
 
-def fetch(url: str, timeout: int = 15) -> BeautifulSoup | None:
+def fetch(url: str, timeout: int = 15) -> Optional[BeautifulSoup]:
     try:
         r = requests.get(url, headers=HEADERS, timeout=timeout)
         r.raise_for_status()
@@ -216,22 +221,103 @@ def article_to_html(art: dict) -> str:
                 </a>"""
 
 
-def update_html(articles: list[dict], html_path: Path) -> tuple[str, bool]:
+def get_revision_entries(repo_root: Path, limit: int = 6) -> list[dict]:
+    """git log から LP 改訂履歴を取得"""
+    cmd = [
+        "git", "-C", str(repo_root), "log",
+        f"-n{limit}",
+        "--date=format:%Y/%m/%d",
+        "--pretty=format:%ad||%h||%s",
+    ]
+    try:
+        out = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL)
+    except Exception:
+        return []
+
+    repo = os.getenv("GITHUB_REPOSITORY", "").strip()
+    rows = []
+    for line in out.splitlines():
+        parts = line.split("||", 2)
+        if len(parts) != 3:
+            continue
+        date, short_hash, subject = parts
+        is_auto = "ニュース自動更新" in subject
+        commit_url = f"https://github.com/{repo}/commit/{short_hash}" if repo else ""
+        rows.append({
+            "date": date,
+            "hash": short_hash,
+            "subject": subject,
+            "is_auto": is_auto,
+            "url": commit_url,
+        })
+    return rows
+
+
+def revision_to_html(item: dict) -> str:
+    tag_text = "自動更新" if item["is_auto"] else "手動更新"
+    tag_class = "bg-primary/10 text-primary" if item["is_auto"] else "bg-accent/10 text-accent"
+    title = escape(item["subject"])
+    date = escape(item["date"])
+    if item["url"]:
+        hash_html = (
+            f'<a href="{escape(item["url"])}" target="_blank" rel="noopener noreferrer" '
+            f'class="text-xs text-primary hover:underline">{escape(item["hash"])}</a>'
+        )
+    else:
+        hash_html = f'<span class="text-xs text-gray-500">{escape(item["hash"])}</span>'
+
+    return f"""                    <div class="flex items-start justify-between gap-3 bg-[#F9F7F4] rounded-xl border border-gray-200 p-3">
+                        <div>
+                            <p class="text-sm font-bold text-gray-900">{title}</p>
+                            <p class="text-xs text-gray-500 mt-1 inline-flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-full {tag_class}">{tag_text}</span>
+                                {hash_html}
+                            </p>
+                        </div>
+                        <span class="text-xs text-gray-400 whitespace-nowrap">{date}</span>
+                    </div>"""
+
+
+def update_html(articles: Optional[list[dict]], revisions: list[dict], html_path: Path) -> tuple[str, bool]:
     content = html_path.read_text(encoding="utf-8")
-    new_items = "\n".join(article_to_html(a) for a in articles)
-    new_block = (
-        "                <!-- NEWS_ITEMS_START -->\n"
-        + new_items
-        + "\n                <!-- NEWS_ITEMS_END -->"
-    )
-    pattern = r"<!-- NEWS_ITEMS_START -->.*?<!-- NEWS_ITEMS_END -->"
-    new_content, n = re.subn(pattern, new_block, content, flags=re.DOTALL)
-    if n == 0:
-        print("[ERROR] NEWS_ITEMS_START/END markers not found", file=sys.stderr)
-        return content, False
-    changed = new_content != content
+    changed = False
+
+    new_content = content
+    if articles is not None:
+        new_items = "\n".join(article_to_html(a) for a in articles)
+        new_block = (
+            "                <!-- NEWS_ITEMS_START -->\n"
+            + new_items
+            + "\n                <!-- NEWS_ITEMS_END -->"
+        )
+        news_pattern = r"<!-- NEWS_ITEMS_START -->.*?<!-- NEWS_ITEMS_END -->"
+        new_content, news_count = re.subn(news_pattern, new_block, content, flags=re.DOTALL)
+        if news_count == 0:
+            print("[ERROR] NEWS_ITEMS_START/END markers not found", file=sys.stderr)
+            return content, False
+
+        if new_content != content:
+            changed = True
+
+    if revisions:
+        revision_items = "\n".join(revision_to_html(r) for r in revisions)
+        revision_block = (
+            "                    <!-- REVISION_ITEMS_START -->\n"
+            + revision_items
+            + "\n                    <!-- REVISION_ITEMS_END -->"
+        )
+        rev_pattern = r"<!-- REVISION_ITEMS_START -->.*?<!-- REVISION_ITEMS_END -->"
+        newer_content, rev_count = re.subn(rev_pattern, revision_block, new_content, flags=re.DOTALL)
+        if rev_count == 0:
+            print("[WARN] REVISION_ITEMS_START/END markers not found", file=sys.stderr)
+        else:
+            if newer_content != new_content:
+                changed = True
+            new_content = newer_content
+
     if changed:
         html_path.write_text(new_content, encoding="utf-8")
+
     return new_content, changed
 
 
@@ -267,15 +353,23 @@ def main():
 
     print(f"[INFO] Total articles: {len(all_articles)}", file=sys.stderr)
 
+    # 外部サイトの取得に失敗して動的記事が0件の場合はニュース欄を上書きしない
+    update_news_items = all_articles if unique else None
+    if update_news_items is None:
+        print("[WARN] No dynamic articles found. Keep existing NEWS block.", file=sys.stderr)
+
     # HTML 更新
     html_path = Path(__file__).parent.parent / "index.html"
-    _, changed = update_html(all_articles, html_path)
+    repo_root = Path(__file__).parent.parent
+    revisions = get_revision_entries(repo_root)
+    _, changed = update_html(update_news_items, revisions, html_path)
     print(f"[INFO] HTML {'updated' if changed else 'unchanged'}", file=sys.stderr)
 
     # 結果を JSON で stdout に出力（GitHub Actions で利用）
     result = {
         "updated": changed,
         "article_count": len(all_articles),
+        "revision_count": len(revisions),
         "articles": all_articles,
         "fetched_at": datetime.now(tz=timezone(timedelta(hours=9))).strftime("%Y-%m-%d %H:%M JST"),
     }

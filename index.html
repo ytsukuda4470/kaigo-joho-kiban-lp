@@ -222,12 +222,11 @@
             <!-- ヒーローイメージ -->
             <div class="reveal reveal-delay-3 w-full max-w-4xl mx-auto mb-12">
                 <div class="rounded-3xl overflow-hidden shadow-xl relative border-4 border-white/80">
-                    <span class="hero-image-note"><i class="fas fa-sparkles mr-1"></i>Gemini画像に差し替え可能</span>
-                    <img src="assets/generated/hero-ai-placeholder.svg"
-                         alt="介護現場のチームワークとデジタル連携を表現したヒーロービジュアル"
+                    <img src="https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=1600&q=80"
+                         alt="タブレットを利用する医療・介護事業所のイメージ"
                          class="w-full h-56 sm:h-72 md:h-80 object-cover"
                          loading="eager"
-                         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1504813184591-01572f98c85f?auto=format&fit=crop&w=1200&q=80'">
+                         onerror="this.src='assets/generated/hero-ai-placeholder.svg'">
                     <div class="absolute inset-0 bg-gradient-to-r from-primary/50 via-primary/20 to-transparent"></div>
                     <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                     <div class="absolute bottom-0 left-0 right-0 p-5 sm:p-8 text-white">
@@ -247,7 +246,7 @@
             </div>
 
             <!-- 統計バー（ヒーロー内に統合） -->
-            <div class="reveal max-w-4xl mx-auto">
+            <div class="reveal max-w-4xl mx-auto mb-10">
                 <div class="bg-primary rounded-2xl p-6 shadow-lg">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-white text-center">
                         <div>
@@ -270,11 +269,6 @@
                 </div>
             </div>
 
-            <div class="reveal reveal-delay-3 mt-2 text-center">
-                <p class="text-xs sm:text-sm text-gray-500">
-                    画像は <span class="font-bold text-primary">assets/generated/hero-ai-placeholder.svg</span> を使用中。Geminiで生成したWebPに差し替えると、さらに世界観を統一できます。
-                </p>
-            </div>
         </div>
     </section>
 
@@ -352,6 +346,114 @@
                     </div>
                 </a>
                 <!-- NEWS_ITEMS_END -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         3. 更新運用マニュアル（技術情報）
+    ============================================ -->
+    <section id="lp-manual" class="py-14 bg-white">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="reveal text-center mb-8">
+                <span class="section-badge"><i class="fas fa-book-open mr-1 text-accent"></i>運用マニュアル</span>
+                <h2 class="text-2xl sm:text-3xl font-rounded font-bold text-gray-900 mb-3">LPの更新タイミングと自動更新の仕組み</h2>
+                <p class="text-gray-600 text-sm sm:text-base">ニュースと改訂履歴は、GitHub Actions により定期更新されます。</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="reveal bg-[#F5F3EF] border border-gray-200 rounded-2xl p-5">
+                    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">LPはいつ更新される？</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">毎週月曜 8:00（JST）に自動ジョブが実行されます。必要時は手動実行でも即時更新できます。</p>
+                </div>
+                <div class="reveal reveal-delay-1 bg-[#F5F3EF] border border-gray-200 rounded-2xl p-5">
+                    <div class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center mb-3">
+                        <i class="fas fa-rss"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">何を自動収集する？</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">Joint、GemMed、介護経営の各媒体から「介護情報基盤」関連記事を自動収集し、最新ニュース欄を更新します。</p>
+                </div>
+                <div class="reveal reveal-delay-2 bg-[#F5F3EF] border border-gray-200 rounded-2xl p-5">
+                    <div class="w-10 h-10 rounded-xl bg-warm/10 text-warm flex items-center justify-center mb-3">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">改訂履歴は自動で入る？</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">はい。リポジトリの最新コミット情報をもとに、このページ内の改訂履歴を自動で更新します。</p>
+                </div>
+            </div>
+
+            <div class="reveal bg-white border border-gray-200 rounded-2xl p-5 md:p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-rounded font-bold text-gray-900"><i class="fas fa-pen-nib text-primary mr-2"></i>LP改訂履歴（自動）</h3>
+                    <span class="text-xs text-gray-500">最新 6 件</span>
+                </div>
+                <div class="space-y-3">
+                                                            <!-- REVISION_ITEMS_START -->
+                    <div class="flex items-start justify-between gap-3 bg-[#F9F7F4] rounded-xl border border-gray-200 p-3">
+                        <div>
+                            <p class="text-sm font-bold text-gray-900">マルチサイトHosting対応: LP(kaigo-lp-279) + 管理画面(kaigo-kiban-pm)分離</p>
+                            <p class="text-xs text-gray-500 mt-1 inline-flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-full bg-accent/10 text-accent">手動更新</span>
+                                <span class="text-xs text-gray-500">4644179</span>
+                            </p>
+                        </div>
+                        <span class="text-xs text-gray-400 whitespace-nowrap">2026/04/04</span>
+                    </div>
+                    <div class="flex items-start justify-between gap-3 bg-[#F9F7F4] rounded-xl border border-gray-200 p-3">
+                        <div>
+                            <p class="text-sm font-bold text-gray-900">Firebase完全クラウド化: Hosting + Functions + Firestore構成を追加</p>
+                            <p class="text-xs text-gray-500 mt-1 inline-flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-full bg-accent/10 text-accent">手動更新</span>
+                                <span class="text-xs text-gray-500">e384463</span>
+                            </p>
+                        </div>
+                        <span class="text-xs text-gray-400 whitespace-nowrap">2026/04/03</span>
+                    </div>
+                    <div class="flex items-start justify-between gap-3 bg-[#F9F7F4] rounded-xl border border-gray-200 p-3">
+                        <div>
+                            <p class="text-sm font-bold text-gray-900">GASデプロイ設定を追加（scriptId・appsscript.json修正）</p>
+                            <p class="text-xs text-gray-500 mt-1 inline-flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-full bg-accent/10 text-accent">手動更新</span>
+                                <span class="text-xs text-gray-500">8030805</span>
+                            </p>
+                        </div>
+                        <span class="text-xs text-gray-400 whitespace-nowrap">2026/04/03</span>
+                    </div>
+                    <div class="flex items-start justify-between gap-3 bg-[#F9F7F4] rounded-xl border border-gray-200 p-3">
+                        <div>
+                            <p class="text-sm font-bold text-gray-900">CRM: ローカルプレビュー用モックデータを追加</p>
+                            <p class="text-xs text-gray-500 mt-1 inline-flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-full bg-accent/10 text-accent">手動更新</span>
+                                <span class="text-xs text-gray-500">a79a7e9</span>
+                            </p>
+                        </div>
+                        <span class="text-xs text-gray-400 whitespace-nowrap">2026/04/03</span>
+                    </div>
+                    <div class="flex items-start justify-between gap-3 bg-[#F9F7F4] rounded-xl border border-gray-200 p-3">
+                        <div>
+                            <p class="text-sm font-bold text-gray-900">介護基盤 管理ツール: タイトル変更 + LP管理ページ追加</p>
+                            <p class="text-xs text-gray-500 mt-1 inline-flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-full bg-accent/10 text-accent">手動更新</span>
+                                <span class="text-xs text-gray-500">80cb30f</span>
+                            </p>
+                        </div>
+                        <span class="text-xs text-gray-400 whitespace-nowrap">2026/04/03</span>
+                    </div>
+                    <div class="flex items-start justify-between gap-3 bg-[#F9F7F4] rounded-xl border border-gray-200 p-3">
+                        <div>
+                            <p class="text-sm font-bold text-gray-900">CRM: 右上にGoogleスタイルのユーザーメニューを追加</p>
+                            <p class="text-xs text-gray-500 mt-1 inline-flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-full bg-accent/10 text-accent">手動更新</span>
+                                <span class="text-xs text-gray-500">e818a7b</span>
+                            </p>
+                        </div>
+                        <span class="text-xs text-gray-400 whitespace-nowrap">2026/04/03</span>
+                    </div>
+                    <!-- REVISION_ITEMS_END -->
+                </div>
             </div>
         </div>
     </section>
@@ -436,6 +538,83 @@
                         <div class="text-xs text-gray-500 mt-1">業務時間を削減</div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         INFOGRAPHIC: 介護情報基盤とは
+    ============================================ -->
+    <section class="py-16 bg-white overflow-hidden relative border-y border-gray-100">
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-blue-50 opacity-50 blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-orange-50 opacity-50 blur-3xl"></div>
+
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-10 reveal">
+                <span class="section-badge"><i class="fas fa-network-wired mr-1 text-accent"></i>いま話題の国のシステム</span>
+                <h2 class="text-2xl sm:text-3xl font-rounded font-bold text-gray-900 mb-4">そもそも<span class="text-primary mx-1">「介護情報基盤」</span>とは？</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+                    マイナンバーカードを活用し、医療機関や別の介護事業所、自治体の間で安全かつスムーズに情報を連携できる国のクラウドシステムです。
+                </p>
+            </div>
+
+            <!-- Flow diagram container -->
+            <div class="reveal flex flex-col md:flex-row items-center justify-center gap-4 md:gap-2 max-w-5xl mx-auto p-6 md:p-10 bg-[#F9F7F4] rounded-3xl border border-gray-200/60 shadow-lg">
+
+                <!-- Node 1: You -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 w-full md:w-1/3 text-center relative z-10">
+                    <div class="w-16 h-16 mx-auto bg-blue-50 rounded-full flex items-center justify-center mb-4 border-2 border-primary/20">
+                        <i class="fas fa-user-nurse text-2xl text-primary"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">あなたの介護事業所</h3>
+                    <p class="text-xs text-gray-500 leading-relaxed mb-3">日々タブレットやソフトで記録するケア内容や計画書</p>
+                    <div class="inline-block bg-gray-100 rounded text-xs px-2 py-1 text-gray-600 font-medium">
+                        <i class="fas fa-lock mr-1"></i>安全にアップロード
+                    </div>
+                </div>
+
+                <!-- Arrow 1 -->
+                <div class="flex md:flex-col items-center justify-center w-8 md:w-16 py-4 md:py-0 text-accent opacity-80">
+                    <i class="fas fa-chevron-down md:hidden text-2xl animate-bounce"></i>
+                    <i class="fas fa-chevron-right hidden md:block text-3xl animate-pulse"></i>
+                </div>
+
+                <!-- Node 2: The Cloud (Core) -->
+                <div class="bg-gradient-to-br from-primary to-[#3080C0] p-6 rounded-2xl shadow-xl w-full md:w-1/3 text-center relative z-10 transform scale-105">
+                    <div class="absolute -top-3 -right-3">
+                        <span class="bg-accent text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm animate-pulse">ここがSTART!</span>
+                    </div>
+                    <div class="w-16 h-16 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-4 backdrop-blur-sm border border-white/30">
+                        <i class="fas fa-cloud text-3xl text-white"></i>
+                    </div>
+                    <h3 class="font-bold text-white text-lg mb-2">介護情報基盤<br><span class="text-sm font-normal text-blue-100">（国の網）</span></h3>
+                    <p class="text-xs text-blue-50 leading-relaxed">
+                        データが国基準の高いセキュリティで一元管理されます。
+                    </p>
+                </div>
+
+                <!-- Arrow 2 -->
+                <div class="flex md:flex-col items-center justify-center w-8 md:w-16 py-4 md:py-0 text-accent opacity-80">
+                    <i class="fas fa-chevron-down md:hidden text-2xl animate-bounce"></i>
+                    <i class="fas fa-sync-alt hidden md:block text-3xl"></i>
+                </div>
+
+                <!-- Node 3: Others -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 w-full md:w-1/3 text-center relative z-10">
+                    <div class="w-16 h-16 mx-auto bg-green-50 rounded-full flex items-center justify-center mb-4 border-2 border-green-500/20">
+                        <i class="fas fa-hospital text-2xl text-green-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">医療機関・他事業所</h3>
+                    <p class="text-xs text-gray-500 leading-relaxed mb-3">必要なときにすぐ過去のケア情報や医療履歴を参照</p>
+                    <div class="inline-block bg-gray-100 rounded text-xs px-2 py-1 text-gray-600 font-medium">
+                        <i class="fas fa-hand-holding-medical mr-1"></i>連携がスムーズに
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-8 text-center text-sm md:text-base text-gray-600 bg-blue-50/50 p-4 rounded-xl max-w-3xl mx-auto border border-blue-100">
+                <p><i class="fas fa-check-circle text-accent mr-2"></i><strong>早期に導入することで、事務作業の大幅な削減とケアの質の向上が見込めます。</strong></p>
             </div>
         </div>
     </section>
@@ -1481,7 +1660,7 @@
         var target = new Date('2026-04-01T00:00:00+09:00');
         function update() {
             var diff = target - new Date();
-            if (diff <= 0) { badge.innerHTML = '<strong class="text-accent">本日スタート！</strong> 介護情報基盤 稼働開始'; return; }
+            if (diff <= 0) { badge.innerHTML = '<strong class="text-accent">2026年4月1日スタート！</strong> 介護情報基盤 稼働開始'; return; }
             badge.innerHTML = '介護情報基盤 稼働開始まで<strong class="text-accent ml-1">あと' + Math.ceil(diff / 86400000) + '日</strong>';
         }
         update(); setInterval(update, 60000);
