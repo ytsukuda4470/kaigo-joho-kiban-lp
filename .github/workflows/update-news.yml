@@ -1,0 +1,104 @@
+name: ニュース自動更新
+
+on:
+  schedule:
+    # 毎週月曜 8:00 JST (= 日曜 23:00 UTC)
+    - cron: "0 23 * * 0"
+  workflow_dispatch:
+    inputs:
+      force_notify:
+        description: "変更がなくても通知する (true/false)"
+        default: "true"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  update-news:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # ──────────────────────────────────────────
+      # 1. チェックアウト
+      # ──────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ──────────────────────────────────────────
+      # 2. Python セットアップ
+      # ──────────────────────────────────────────
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      # ──────────────────────────────────────────
+      # 3. ニューススクレイピング & HTML 更新
+      # ──────────────────────────────────────────
+      - name: Run news scraper
+        id: scraper
+        run: |
+          OUTPUT=$(python scripts/update_news.py)
+          echo "$OUTPUT"
+          # JSON を multiline output に保存
+          {
+            echo "result<<SCRAPER_EOF"
+            echo "$OUTPUT"
+            echo "SCRAPER_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # ──────────────────────────────────────────
+      # 4. 変更があれば commit & push
+      # ──────────────────────────────────────────
+      - name: Commit and push if changed
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --staged --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No changes to commit"
+          else
+            ARTICLE_COUNT=$(echo '${{ steps.scraper.outputs.result }}' | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('article_count',0))" 2>/dev/null || echo "?")
+            git commit -m "ニュース自動更新 $(date +'%Y-%m-%d') — ${ARTICLE_COUNT}件"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ──────────────────────────────────────────
+      # 5. Google Chat 通知
+      # ──────────────────────────────────────────
+      - name: Send Google Chat notification
+        if: steps.commit.outputs.changed == 'true' || github.event.inputs.force_notify == 'true'
+        env:
+          GCHAT_WEBHOOK_URL: ${{ secrets.GCHAT_WEBHOOK_URL }}
+        run: |
+          echo '${{ steps.scraper.outputs.result }}' | python3 scripts/notify_gchat.py
+
+      # ──────────────────────────────────────────
+      # 6. 結果サマリー
+      # ──────────────────────────────────────────
+      - name: Summary
+        if: always()
+        run: |
+          CHANGED="${{ steps.commit.outputs.changed }}"
+          {
+            echo "### ニュース更新結果"
+            if [ "$CHANGED" = "true" ]; then
+              echo "✅ index.html を更新して push しました"
+            else
+              echo "ℹ️ 新着なし（変更なし）"
+            fi
+            echo ""
+            echo '```json'
+            echo '${{ steps.scraper.outputs.result }}'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
