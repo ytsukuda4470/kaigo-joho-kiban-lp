@@ -1,0 +1,16 @@
+# Firebase config (secrets - do not commit)
+firebase-app/public/firebase-config.js
+
+# Firebase debug logs
+firebase-debug.log
+firebase-debug.*.log
+.runtimeconfig.json
+
+# Functions dependencies
+firebase-app/functions/node_modules/
+
+# OS
+.DS_Store
+
+# Private materials
+他社資料/

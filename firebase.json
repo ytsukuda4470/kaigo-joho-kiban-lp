@@ -1,11 +1,11 @@
 {
   "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
+    "rules": "firebase-app/firestore.rules",
+    "indexes": "firebase-app/firestore.indexes.json"
   },
   "functions": [
     {
-      "source": "functions",
+      "source": "firebase-app/functions",
       "codebase": "default",
       "ignore": ["node_modules", ".git", "firebase-debug.log"]
     }
@@ -13,7 +13,7 @@
   "hosting": [
     {
       "target": "admin",
-      "public": "public",
+      "public": "firebase-app/public",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         { "source": "**", "destination": "/index.html" }
@@ -29,7 +29,7 @@
     },
     {
       "target": "lp",
-      "public": "..",
+      "public": ".",
       "ignore": [
         "firebase.json",
         "**/.*",

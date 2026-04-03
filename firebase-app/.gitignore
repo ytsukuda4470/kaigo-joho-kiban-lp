@@ -1,3 +1,4 @@
 .firebase/
 functions/node_modules/
 .firebaserc
+public/firebase-config.js

@@ -1,0 +1,18 @@
+{
+  "projects": {
+    "default": "kaigo-kiban-pm"
+  },
+  "targets": {
+    "kaigo-kiban-pm": {
+      "hosting": {
+        "admin": [
+          "kaigo-kiban-pm"
+        ],
+        "lp": [
+          "kaigo-lp-279"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

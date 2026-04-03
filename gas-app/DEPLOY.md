@@ -39,6 +39,16 @@
    - 問い合わせシートに追加列（対応状況・担当者・メモ等）を自動追加
    - 対応履歴・フォローアップ・メールテンプレートシートを自動作成
 
+## 5.1 LP問い合わせ受信（doPost）
+
+このリポジトリの `Code.gs` には、公開LPからの送信用 `doPost` が実装済みです。
+
+- 受信フィールド: メールアドレス、法人名、事業所名、住所、担当者、問い合わせ内容など
+- 保存先: `問い合わせ` シート
+- 既存シートに不足列があれば自動補完
+
+公開LPの `GAS_URL` が、このデプロイURLと一致しているかを必ず確認してください。
+
 ## 6. GitHub Token 設定（LP 管理機能に必要）
 
 「LP 管理」ページから記事の編集・公開・自動収集トリガーを使うには GitHub PAT が必要です。
@@ -66,3 +76,25 @@ clasp create --type webapp --title "介護情報基盤 CRM"
 clasp push
 clasp deploy
 ```
+
+## 本番前チェック（推奨）
+
+リポジトリルートで次を実行し、`[NG]` がゼロになることを確認します。
+
+```bash
+./scripts/preflight_check.py
+```
+
+Firebase のローカル設定ファイル作成は次で半自動化できます。
+
+```bash
+./scripts/setup_local_config.sh
+```
+
+入力値（Project ID / API Key / App ID / Sender ID）を聞かれるので、Firebase Console の値を貼り付けてください。
+
+現在の主な `[NG]` は、以下の未設定値です。
+
+- `firebase-app/.firebaserc` の `YOUR_FIREBASE_PROJECT_ID`
+- `firebase-app/public/index.html` の Firebase Config 値
+- `gas-app/Code.gs` 内コメント例の `YOUR_SHEET_ID`（実運用ではスクリプトプロパティ側に設定）

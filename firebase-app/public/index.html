@@ -26,17 +26,13 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+<script src="./firebase-config.js"></script>
 
 <script>
-// ▼ Firebase Console のプロジェクト設定からコピーして置き換えてください
-const firebaseConfig = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
-};
+const firebaseConfig = window.__FIREBASE_CONFIG__;
+if (!firebaseConfig || !firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  throw new Error('firebase-config.js の設定が未完了です。firebase-config.example.js をコピーして値を設定してください。');
+}
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db   = firebase.firestore();

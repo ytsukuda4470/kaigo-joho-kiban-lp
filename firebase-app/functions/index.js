@@ -1,11 +1,10 @@
 'use strict';
 
-const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { onCall, HttpsError, onRequest } = require('firebase-functions/v2/https');
 const { onSchedule }         = require('firebase-functions/v2/scheduler');
 const { defineSecret }       = require('firebase-functions/params');
 const { initializeApp }      = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
-const nodemailer = require('nodemailer');
 const fetch      = require('node-fetch');
 const cheerio    = require('cheerio');
 
@@ -18,14 +17,11 @@ const GITHUB_REPO    = 'kaigo-joho-kiban-lp';
 const KEYWORD        = '介護情報基盤';
 
 // ── シークレット定義 ──────────────────────────────────────
-// firebase functions:secrets:set GMAIL_USER
-// firebase functions:secrets:set GMAIL_APP_PASSWORD
 // firebase functions:secrets:set GCHAT_WEBHOOK_URL
 // firebase functions:secrets:set GITHUB_TOKEN
-const GMAIL_USER          = defineSecret('GMAIL_USER');
-const GMAIL_APP_PASSWORD  = defineSecret('GMAIL_APP_PASSWORD');
 const GCHAT_WEBHOOK_URL   = defineSecret('GCHAT_WEBHOOK_URL');
 const GITHUB_TOKEN        = defineSecret('GITHUB_TOKEN');
+// ※ メール送信は GAS の sendEmail 関数が担当（kiban@279279.netはグループメールのため）
 
 // ── ユーティリティ ────────────────────────────────────────
 
@@ -38,37 +34,6 @@ function fmtDate(d) {
   const dt = d.toDate ? d.toDate() : new Date(d);
   return `${dt.getFullYear()}/${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
 }
-
-// ── メール送信 ────────────────────────────────────────────
-
-exports.sendEmail = onCall(
-  { region: REGION, secrets: [GMAIL_USER, GMAIL_APP_PASSWORD] },
-  async (request) => {
-    requireAuth(request);
-    const { to, subject, body, inquiryId } = request.data;
-    if (!to || !subject) throw new HttpsError('invalid-argument', '宛先と件名は必須です');
-
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user: GMAIL_USER.value(), pass: GMAIL_APP_PASSWORD.value() },
-    });
-    await transporter.sendMail({
-      from: `株式会社２７９ <${GMAIL_USER.value()}>`,
-      to, subject, text: body,
-    });
-
-    if (inquiryId) {
-      await db.collection('actions').add({
-        inquiryId,
-        type: 'メール送信',
-        content: `件名: ${subject}\n\n${body}`,
-        staff: request.auth.token.email,
-        createdAt: FieldValue.serverTimestamp(),
-      });
-    }
-    return { success: true };
-  }
-);
 
 // ── Google Chat 通知 ──────────────────────────────────────
 

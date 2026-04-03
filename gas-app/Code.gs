@@ -14,6 +14,14 @@ const SH_ACTIONS   = '対応履歴';
 const SH_FOLLOWUPS = 'フォローアップ';
 const SH_TEMPLATES = 'メールテンプレート';
 
+// 問い合わせシート標準ヘッダー
+const INQUIRY_HEADERS = [
+  'タイムスタンプ', 'メールアドレス', '法人名', '事業所名', '郵便番号', '都道府県',
+  '電話番号', 'ご担当者名', '役職', '事業所数', 'ケアプラン連携', '国保連伝送',
+  'ご興味のある点', 'お問い合わせ内容', '個人情報同意',
+  '対応状況', '担当者', '最終更新', 'メモ'
+];
+
 // 問い合わせシートの追加列（既存列の後ろに追加）
 const EXTRA_COLS = ['対応状況', '担当者', '最終更新', 'メモ'];
 
@@ -28,6 +36,87 @@ function doGet(e) {
   return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('介護基盤 管理ツール')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function doPost(e) {
+  try {
+    const ss = getSpreadsheet();
+    const inqSh = ensureInquirySheet(ss);
+    const headers = inqSh.getRange(1, 1, 1, inqSh.getLastColumn()).getValues()[0];
+    const payload = parsePostPayload(e);
+    const now = new Date();
+
+    const rowMap = {
+      'タイムスタンプ': payload.timestamp || now,
+      'メールアドレス': payload.email || '',
+      '法人名': payload.corp || '',
+      '事業所名': payload.office || '',
+      '郵便番号': payload.zip || '',
+      '都道府県': payload.prefecture || '',
+      '電話番号': payload.phone || '',
+      'ご担当者名': payload.name || '',
+      '役職': payload.role || '',
+      '事業所数': payload.officeCount || '',
+      'ケアプラン連携': payload.careplanLinkage || '',
+      '国保連伝送': payload.densou || '',
+      'ご興味のある点': payload.interest || '',
+      'お問い合わせ内容': payload.message || '',
+      '個人情報同意': payload.privacy || '',
+      '対応状況': '新規',
+      '担当者': '',
+      '最終更新': now,
+      'メモ': '',
+    };
+
+    const row = headers.map(h => rowMap[h] ?? '');
+    inqSh.appendRow(row);
+
+    return jsonResponse({ success: true });
+  } catch (err) {
+    return jsonResponse({ success: false, error: err.message }, 500);
+  }
+}
+
+function parsePostPayload(e) {
+  if (!e || !e.postData || !e.postData.contents) return {};
+  const body = e.postData.contents;
+  try {
+    return JSON.parse(body);
+  } catch (_) {
+    const params = {};
+    body.split('&').forEach(pair => {
+      const [k, v] = pair.split('=');
+      if (!k) return;
+      params[decodeURIComponent(k)] = decodeURIComponent((v || '').replace(/\+/g, ' '));
+    });
+    return params;
+  }
+}
+
+function ensureInquirySheet(ss) {
+  const inqSh = getOrCreateSheet(ss, SH_INQUIRIES, INQUIRY_HEADERS);
+  const existingHeaders = inqSh.getRange(1, 1, 1, inqSh.getLastColumn()).getValues()[0];
+
+  INQUIRY_HEADERS.forEach(col => {
+    if (!existingHeaders.includes(col)) {
+      const nextCol = inqSh.getLastColumn() + 1;
+      inqSh.getRange(1, nextCol).setValue(col)
+        .setBackground('#1E3A5F').setFontColor('#FFFFFF').setFontWeight('bold');
+      if (col === '対応状況' && inqSh.getLastRow() > 1) {
+        inqSh.getRange(2, nextCol, inqSh.getLastRow() - 1, 1).setValue('新規');
+      }
+      if (col === '最終更新' && inqSh.getLastRow() > 1) {
+        inqSh.getRange(2, nextCol, inqSh.getLastRow() - 1, 1).setValue(new Date());
+      }
+    }
+  });
+  return inqSh;
+}
+
+function jsonResponse(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 // ============================================================
