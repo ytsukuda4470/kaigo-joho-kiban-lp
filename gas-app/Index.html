@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>介護情報基盤 CRM</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          sidebar: '#1E3A5F',
+          'sidebar-hover': '#2A4F7F',
+          'sidebar-active': '#2563A0',
+          primary: '#2563A0',
+          accent: '#E8732A',
+          warm: '#3D8B5E',
+        },
+        fontFamily: {
+          sans: ['"Noto Sans JP"', 'sans-serif'],
+        }
+      }
+    }
+  }
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<style>
+  [x-cloak] { display: none !important; }
+  .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+  .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+  .fade-in { animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+  .panel-slide { animation: slideIn 0.25s ease; }
+  @keyframes slideIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:none; } }
+</style>
+</head>
+<body class="font-sans bg-gray-100 text-gray-800" x-data="app()" x-init="init()" x-cloak>
+
+<!-- ======================================================
+     レイアウト
+====================================================== -->
+<div class="flex h-screen overflow-hidden">
+
+  <!-- =====================
+       サイドバー
+  ===================== -->
+  <aside class="flex flex-col w-60 bg-sidebar text-white flex-shrink-0">
+    <!-- ロゴ -->
+    <div class="px-5 py-5 border-b border-white/10">
+      <div class="text-lg font-bold tracking-wide">株式会社２７９</div>
+      <div class="text-xs text-white/50 mt-0.5">介護情報基盤 CRM</div>
+    </div>
+
+    <!-- ナビ -->
+    <nav class="flex-1 py-4 overflow-y-auto scrollbar-thin">
+      <template x-for="item in navItems" :key="item.id">
+        <button
+          @click="navigate(item.id)"
+          :class="currentPage === item.id
+            ? 'bg-sidebar-active text-white'
+            : 'text-white/70 hover:bg-sidebar-hover hover:text-white'"
+          class="w-full flex items-center gap-3 px-5 py-3 text-sm transition-colors rounded-lg mx-2 mb-0.5"
+          style="width: calc(100% - 16px);"
+        >
+          <i :class="item.icon" class="w-5 text-center text-base"></i>
+          <span x-text="item.label"></span>
+          <template x-if="item.badge && getBadgeCount(item.badge) > 0">
+            <span class="ml-auto bg-accent text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center"
+                  x-text="getBadgeCount(item.badge)"></span>
+          </template>
+        </button>
+      </template>
+    </nav>
+
+    <!-- ユーザー情報 -->
+    <div class="px-5 py-4 border-t border-white/10 flex items-center gap-3">
+      <div class="w-8 h-8 rounded-full bg-sidebar-active flex items-center justify-center text-sm font-bold flex-shrink-0"
+           x-text="currentUser.displayName ? currentUser.displayName[0].toUpperCase() : '?'"></div>
+      <div class="min-w-0">
+        <div class="text-sm font-medium truncate" x-text="currentUser.displayName || 'Loading...'"></div>
+        <div class="text-xs text-white/50 truncate" x-text="currentUser.email || ''"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- =====================
+       メインコンテンツ
+  ===================== -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+
+    <!-- トップバー -->
+    <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between flex-shrink-0">
+      <div>
+        <h1 class="text-lg font-bold text-gray-900" x-text="currentPageTitle"></h1>
+        <p class="text-xs text-gray-400 mt-0.5" x-text="lastRefreshed ? '最終更新: ' + lastRefreshed : ''"></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button @click="refreshPage()" class="text-gray-400 hover:text-primary transition-colors text-sm">
+          <i class="fas fa-sync-alt" :class="loading ? 'animate-spin' : ''"></i>
+        </button>
+        <template x-if="currentPage === 'inquiries' || currentPage === 'dashboard'">
+          <button @click="openSetup()"
+            class="text-xs text-gray-400 hover:text-primary transition-colors px-3 py-1.5 rounded-lg border border-gray-200 hover:border-primary">
+            <i class="fas fa-cog mr-1"></i>初期設定
+          </button>
+        </template>
+      </div>
+    </header>
+
+    <!-- コンテンツエリア -->
+    <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
+
+      <!-- ローディング -->
+      <template x-if="loading && !dashboardData">
+        <div class="flex items-center justify-center h-64">
+          <div class="text-center">
+            <i class="fas fa-circle-notch fa-spin text-primary text-3xl"></i>
+            <p class="mt-3 text-gray-500 text-sm">読み込み中...</p>
+          </div>
+        </div>
+      </template>
+
+      <!-- エラー -->
+      <template x-if="pageError">
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm fade-in">
+          <i class="fas fa-exclamation-circle mr-2"></i>
+          <span x-text="pageError"></span>
+        </div>
+      </template>
+
+      <!-- ===== ダッシュボード ===== -->
+      <template x-if="currentPage === 'dashboard' && dashboardData && !loading">
+        <div class="fade-in space-y-6">
+
+          <!-- KPIカード -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <div class="text-xs text-gray-400 font-medium mb-1">総問い合わせ数</div>
+              <div class="text-3xl font-bold text-gray-900" x-text="dashboardData.total"></div>
+              <div class="text-xs text-gray-400 mt-1">今週 <span class="text-primary font-semibold" x-text="'+' + dashboardData.weekNew"></span></div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <div class="text-xs text-gray-400 font-medium mb-1">本日の新規</div>
+              <div class="text-3xl font-bold text-accent" x-text="dashboardData.todayNew"></div>
+              <div class="text-xs text-gray-400 mt-1">件</div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <div class="text-xs text-gray-400 font-medium mb-1">対応中</div>
+              <div class="text-3xl font-bold text-primary" x-text="(dashboardData.statusCounts['対応中'] || 0) + (dashboardData.statusCounts['現地訪問済'] || 0)"></div>
+              <div class="text-xs text-gray-400 mt-1">件</div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100"
+                 :class="dashboardData.overdueFu > 0 ? 'border-red-200 bg-red-50' : ''">
+              <div class="text-xs text-gray-400 font-medium mb-1">期限切れFU</div>
+              <div class="text-3xl font-bold" :class="dashboardData.overdueFu > 0 ? 'text-red-500' : 'text-gray-400'"
+                   x-text="dashboardData.overdueFu"></div>
+              <div class="text-xs text-gray-400 mt-1">件</div>
+            </div>
+          </div>
+
+          <!-- ステータス内訳 + 直近リスト -->
+          <div class="grid lg:grid-cols-3 gap-4">
+
+            <!-- ステータス内訳 -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <h3 class="text-sm font-semibold text-gray-700 mb-4">ステータス内訳</h3>
+              <template x-for="(label, i) in ['新規','対応中','現地訪問済','完了','フォロー中']" :key="i">
+                <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                  <div class="flex items-center gap-2">
+                    <span class="status-badge" :class="statusClass(label)" x-text="label"></span>
+                  </div>
+                  <span class="font-bold text-gray-800" x-text="dashboardData.statusCounts[label] || 0"></span>
+                </div>
+              </template>
+            </div>
+
+            <!-- 直近の問い合わせ -->
+            <div class="lg:col-span-2 bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <h3 class="text-sm font-semibold text-gray-700 mb-4">直近の問い合わせ</h3>
+              <template x-if="dashboardData.recent.length === 0">
+                <p class="text-sm text-gray-400 text-center py-4">データがありません</p>
+              </template>
+              <template x-for="row in dashboardData.recent" :key="row.id">
+                <div @click="openDetail(row.id)"
+                     class="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50 rounded-lg px-2 -mx-2 transition-colors">
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium text-gray-800 truncate" x-text="row.corp + ' ' + row.office"></div>
+                    <div class="text-xs text-gray-400" x-text="row.name + ' / ' + row.timestamp"></div>
+                  </div>
+                  <span class="status-badge flex-shrink-0" :class="statusClass(row.status)" x-text="row.status"></span>
+                  <i class="fas fa-chevron-right text-gray-300 text-xs flex-shrink-0"></i>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- ===== 問い合わせ一覧 ===== -->
+      <template x-if="currentPage === 'inquiries'">
+        <div class="fade-in">
+          <!-- 検索・フィルタ -->
+          <div class="flex flex-wrap gap-3 mb-5">
+            <div class="relative flex-1 min-w-48">
+              <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input type="text" x-model="searchQ" @input.debounce.300ms="loadInquiries()"
+                     placeholder="法人名・事業所名・担当者・メール"
+                     class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20">
+            </div>
+            <select x-model="filterStatus" @change="loadInquiries()"
+                    class="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-primary">
+              <option value="all">すべてのステータス</option>
+              <template x-for="s in ['新規','対応中','現地訪問済','完了','フォロー中']" :key="s">
+                <option :value="s" x-text="s"></option>
+              </template>
+            </select>
+            <div class="text-sm text-gray-400 flex items-center">
+              <span x-text="inquiries.length + ' 件'"></span>
+            </div>
+          </div>
+
+          <!-- テーブル -->
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-gray-100 bg-gray-50">
+                    <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs">問い合わせ日</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs">法人・事業所名</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs hidden md:table-cell">都道府県</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs hidden lg:table-cell">担当者</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs">ステータス</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs hidden xl:table-cell">最終更新</th>
+                    <th class="py-3 px-4"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-if="inquiries.length === 0 && !loading">
+                    <tr><td colspan="7" class="text-center py-12 text-gray-400 text-sm">データがありません</td></tr>
+                  </template>
+                  <template x-for="row in inquiries" :key="row.id">
+                    <tr @click="openDetail(row.id)"
+                        class="border-b border-gray-50 hover:bg-blue-50/40 cursor-pointer transition-colors">
+                      <td class="py-3 px-4 text-gray-500 text-xs whitespace-nowrap" x-text="row.timestamp.slice(0,10)"></td>
+                      <td class="py-3 px-4">
+                        <div class="font-medium text-gray-800" x-text="row.corp"></div>
+                        <div class="text-xs text-gray-400" x-text="row.office"></div>
+                      </td>
+                      <td class="py-3 px-4 text-gray-500 text-xs hidden md:table-cell" x-text="row.prefecture"></td>
+                      <td class="py-3 px-4 hidden lg:table-cell">
+                        <div class="text-sm" x-text="row.name"></div>
+                        <div class="text-xs text-gray-400" x-text="row.email"></div>
+                      </td>
+                      <td class="py-3 px-4">
+                        <span class="status-badge" :class="statusClass(row.status)" x-text="row.status"></span>
+                      </td>
+                      <td class="py-3 px-4 text-gray-400 text-xs hidden xl:table-cell" x-text="row.lastUpdated ? row.lastUpdated.slice(0,10) : '-'"></td>
+                      <td class="py-3 px-4 text-right">
+                        <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- ===== フォローアップ ===== -->
+      <template x-if="currentPage === 'followups'">
+        <div class="fade-in space-y-3">
+          <div class="flex gap-3 mb-4">
+            <button @click="fuFilter = 'pending'; loadFollowUps()"
+                    :class="fuFilter === 'pending' ? 'bg-primary text-white' : 'bg-white text-gray-600 border border-gray-200'"
+                    class="px-4 py-2 rounded-xl text-sm font-medium transition-colors">未完了</button>
+            <button @click="fuFilter = 'all'; loadFollowUps()"
+                    :class="fuFilter === 'all' ? 'bg-primary text-white' : 'bg-white text-gray-600 border border-gray-200'"
+                    class="px-4 py-2 rounded-xl text-sm font-medium transition-colors">すべて</button>
+          </div>
+
+          <template x-if="followUps.length === 0">
+            <div class="bg-white rounded-2xl p-12 text-center text-gray-400 shadow-sm border border-gray-100">
+              <i class="fas fa-calendar-check text-4xl mb-3 text-gray-200"></i>
+              <p class="text-sm">フォローアップ予定はありません</p>
+            </div>
+          </template>
+
+          <template x-for="fu in followUps" :key="fu.id">
+            <div class="bg-white rounded-2xl p-5 shadow-sm border flex gap-4 transition-colors"
+                 :class="fu.isOverdue ? 'border-red-200' : fu.isToday ? 'border-yellow-300' : 'border-gray-100'">
+              <!-- 日付 -->
+              <div class="flex-shrink-0 text-center w-14">
+                <div class="text-xs text-gray-400" x-text="fu.dueDate ? fu.dueDate.slice(0,7) : ''"></div>
+                <div class="text-2xl font-bold" :class="fu.isOverdue ? 'text-red-500' : fu.isToday ? 'text-yellow-600' : 'text-primary'"
+                     x-text="fu.dueDate ? fu.dueDate.slice(8,10) : '-'"></div>
+                <div class="text-xs mt-0.5 font-medium"
+                     :class="fu.isOverdue ? 'text-red-400' : fu.isToday ? 'text-yellow-500' : 'text-gray-400'"
+                     x-text="fu.isOverdue ? '期限切れ' : fu.isToday ? '今日' : ''"></div>
+              </div>
+              <!-- コンテンツ -->
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start gap-2 flex-wrap">
+                  <span class="text-sm font-semibold text-gray-800" x-text="fu.subject"></span>
+                  <span class="status-badge" :class="fu.status === '完了' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'" x-text="fu.status"></span>
+                </div>
+                <div class="text-xs text-gray-500 mt-1" x-text="fu.corp + ' ' + fu.office + ' / ' + fu.name"></div>
+                <div class="text-sm text-gray-600 mt-2 line-clamp-2" x-text="fu.content"></div>
+              </div>
+              <!-- アクション -->
+              <div class="flex-shrink-0 flex flex-col gap-2">
+                <button @click="openDetail(fu.inquiryId)"
+                        class="text-xs text-primary hover:underline">詳細</button>
+                <template x-if="fu.status !== '完了'">
+                  <button @click="completeFu(fu.rowNum)"
+                          class="text-xs px-3 py-1.5 bg-warm/10 text-warm rounded-lg hover:bg-warm/20 transition-colors font-medium">完了</button>
+                </template>
+                <template x-if="fu.email">
+                  <button @click="openEmailModal(fu.inquiryId, fu.email, fu.subject, fu.content)"
+                          class="text-xs px-3 py-1.5 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors font-medium">送信</button>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+      </template>
+
+      <!-- ===== メールテンプレート ===== -->
+      <template x-if="currentPage === 'templates'">
+        <div class="fade-in space-y-4">
+          <div class="flex justify-end mb-2">
+            <button @click="newTemplate()"
+                    class="bg-primary text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
+              <i class="fas fa-plus mr-2"></i>新しいテンプレート
+            </button>
+          </div>
+          <template x-for="tmpl in emailTemplates" :key="tmpl.id">
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="font-semibold text-gray-800" x-text="tmpl.name"></h3>
+                <button @click="editTemplate(tmpl)"
+                        class="text-xs text-gray-400 hover:text-primary transition-colors">
+                  <i class="fas fa-edit mr-1"></i>編集
+                </button>
+              </div>
+              <div class="text-sm text-gray-600 font-medium mb-1">
+                件名: <span x-text="tmpl.subject"></span>
+              </div>
+              <div class="text-sm text-gray-500 whitespace-pre-wrap line-clamp-3" x-text="tmpl.body"></div>
+            </div>
+          </template>
+        </div>
+      </template>
+
+    </main>
+  </div>
+</div>
+
+<!-- ======================================================
+     詳細パネル（スライドイン）
+====================================================== -->
+<template x-if="detailOpen && inquiryDetail">
+  <div class="fixed inset-0 z-40 flex" @click.self="detailOpen = false">
+    <div class="ml-auto w-full max-w-2xl bg-white shadow-2xl overflow-y-auto panel-slide flex flex-col h-full">
+
+      <!-- ヘッダー -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50 flex-shrink-0">
+        <div>
+          <h2 class="font-bold text-gray-900 text-lg" x-text="inquiryDetail.corp"></h2>
+          <p class="text-sm text-gray-500" x-text="inquiryDetail.office + ' / ' + inquiryDetail.name"></p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="status-badge text-base px-3 py-1" :class="statusClass(inquiryDetail.status)" x-text="inquiryDetail.status"></span>
+          <button @click="detailOpen = false" class="text-gray-400 hover:text-gray-700 ml-2">
+            <i class="fas fa-times text-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+
+        <!-- 基本情報 -->
+        <section>
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">基本情報</h3>
+          <div class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+            <div><span class="text-gray-400">法人名</span><div class="font-medium" x-text="inquiryDetail.corp"></div></div>
+            <div><span class="text-gray-400">事業所名</span><div class="font-medium" x-text="inquiryDetail.office"></div></div>
+            <div><span class="text-gray-400">担当者</span><div class="font-medium" x-text="inquiryDetail.name + ' ' + (inquiryDetail.role || '')"></div></div>
+            <div><span class="text-gray-400">事業所数</span><div class="font-medium" x-text="inquiryDetail.officeCount || '-'"></div></div>
+            <div><span class="text-gray-400">メール</span><a :href="'mailto:' + inquiryDetail.email" class="font-medium text-primary hover:underline" x-text="inquiryDetail.email"></a></div>
+            <div><span class="text-gray-400">電話</span><a :href="'tel:' + inquiryDetail.phone" class="font-medium text-primary hover:underline" x-text="inquiryDetail.phone"></a></div>
+            <div><span class="text-gray-400">都道府県</span><div class="font-medium" x-text="inquiryDetail.prefecture"></div></div>
+            <div><span class="text-gray-400">問い合わせ日</span><div class="font-medium" x-text="inquiryDetail.timestamp"></div></div>
+            <div><span class="text-gray-400">ケアプラン連携</span><div class="font-medium" x-text="inquiryDetail.careplanLinkage || '-'"></div></div>
+            <div><span class="text-gray-400">国保連伝送</span><div class="font-medium" x-text="inquiryDetail.densou || '-'"></div></div>
+          </div>
+          <div class="mt-3">
+            <span class="text-gray-400 text-sm">お問い合わせ内容</span>
+            <div class="mt-1 bg-gray-50 rounded-xl p-3 text-sm whitespace-pre-wrap text-gray-700" x-text="inquiryDetail.message || '（なし）'"></div>
+          </div>
+        </section>
+
+        <!-- ステータス・担当者 変更 -->
+        <section>
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">対応管理</h3>
+          <div class="flex flex-wrap gap-3">
+            <select x-model="editStatus"
+                    class="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary">
+              <template x-for="s in ['新規','対応中','現地訪問済','完了','フォロー中']" :key="s">
+                <option :value="s" x-text="s"></option>
+              </template>
+            </select>
+            <input x-model="editAssignee" placeholder="担当者"
+                   class="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary">
+            <button @click="saveStatus()"
+                    class="bg-primary text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
+              保存
+            </button>
+          </div>
+          <textarea x-model="editNotes" placeholder="メモ・備考"
+                    class="w-full mt-3 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary resize-none"
+                    rows="3"></textarea>
+          <button @click="saveNotes()"
+                  class="mt-1 text-xs text-primary hover:underline">メモを保存</button>
+        </section>
+
+        <!-- アクションボタン -->
+        <section class="flex flex-wrap gap-2">
+          <button @click="openEmailModal(inquiryDetail.id, inquiryDetail.email, '', '')"
+                  class="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl text-sm font-medium hover:bg-primary/20 transition-colors">
+            <i class="fas fa-envelope"></i>メール送信
+          </button>
+          <button @click="openAddAction()"
+                  class="flex items-center gap-2 px-4 py-2 bg-warm/10 text-warm rounded-xl text-sm font-medium hover:bg-warm/20 transition-colors">
+            <i class="fas fa-clipboard-list"></i>対応記録
+          </button>
+          <button @click="openAddFollowUp()"
+                  class="flex items-center gap-2 px-4 py-2 bg-accent/10 text-accent rounded-xl text-sm font-medium hover:bg-accent/20 transition-colors">
+            <i class="fas fa-calendar-plus"></i>フォローアップ追加
+          </button>
+        </section>
+
+        <!-- 対応履歴 -->
+        <section>
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">対応履歴</h3>
+          <template x-if="inquiryDetail.actions.length === 0">
+            <p class="text-sm text-gray-400">記録がありません</p>
+          </template>
+          <div class="space-y-3">
+            <template x-for="act in inquiryDetail.actions" :key="act.id">
+              <div class="flex gap-3">
+                <div class="flex-shrink-0 mt-1">
+                  <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs"
+                       :class="act.type === 'メール送信' ? 'bg-primary/10 text-primary' : 'bg-warm/10 text-warm'">
+                    <i :class="act.type === 'メール送信' ? 'fas fa-envelope' : 'fas fa-comment-alt'"></i>
+                  </div>
+                </div>
+                <div class="flex-1 bg-gray-50 rounded-xl p-3 text-sm">
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="font-medium text-gray-700" x-text="act.type"></span>
+                    <span class="text-xs text-gray-400" x-text="act.date + ' / ' + act.staff"></span>
+                  </div>
+                  <div class="text-gray-600 whitespace-pre-wrap text-xs" x-text="act.content"></div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </section>
+
+        <!-- フォローアップ -->
+        <section>
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">フォローアップ予定</h3>
+          <template x-if="inquiryDetail.followups.length === 0">
+            <p class="text-sm text-gray-400">予定がありません</p>
+          </template>
+          <div class="space-y-2">
+            <template x-for="fu in inquiryDetail.followups" :key="fu.id">
+              <div class="flex items-center gap-3 bg-gray-50 rounded-xl p-3 text-sm">
+                <div class="w-16 flex-shrink-0">
+                  <div class="text-xs text-gray-400" x-text="fu.dueDate"></div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-medium text-gray-700 truncate" x-text="fu.subject"></div>
+                  <div class="text-xs text-gray-400 truncate" x-text="fu.content"></div>
+                </div>
+                <span class="status-badge" :class="fu.status === '完了' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'" x-text="fu.status"></span>
+              </div>
+            </template>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- ======================================================
+     対応記録モーダル
+====================================================== -->
+<template x-if="addActionOpen">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" @click.self="addActionOpen = false">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl fade-in">
+      <h3 class="font-bold text-gray-900 text-lg mb-4">対応記録を追加</h3>
+      <div class="space-y-3">
+        <select x-model="newAction.type"
+                class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary">
+          <option value="電話">電話</option>
+          <option value="訪問">訪問</option>
+          <option value="メール送信">メール送信</option>
+          <option value="打ち合わせ">打ち合わせ</option>
+          <option value="その他">その他</option>
+        </select>
+        <textarea x-model="newAction.content" placeholder="対応内容を入力..."
+                  class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary resize-none"
+                  rows="4"></textarea>
+      </div>
+      <div class="flex gap-3 mt-5">
+        <button @click="addActionOpen = false" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">キャンセル</button>
+        <button @click="saveAction()" class="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-blue-700 transition-colors">保存</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- ======================================================
+     フォローアップ追加モーダル
+====================================================== -->
+<template x-if="addFuOpen">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" @click.self="addFuOpen = false">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl fade-in">
+      <h3 class="font-bold text-gray-900 text-lg mb-4">フォローアップを追加</h3>
+      <div class="space-y-3">
+        <input type="date" x-model="newFu.dueDate"
+               class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary">
+        <input type="text" x-model="newFu.subject" placeholder="件名"
+               class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary">
+        <textarea x-model="newFu.content" placeholder="内容・メモ"
+                  class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary resize-none"
+                  rows="3"></textarea>
+      </div>
+      <div class="flex gap-3 mt-5">
+        <button @click="addFuOpen = false" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">キャンセル</button>
+        <button @click="saveFu()" class="flex-1 py-2.5 rounded-xl bg-accent text-white text-sm font-medium hover:bg-orange-600 transition-colors">追加</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- ======================================================
+     メール送信モーダル
+====================================================== -->
+<template x-if="emailModalOpen">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" @click.self="emailModalOpen = false">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl fade-in">
+      <h3 class="font-bold text-gray-900 text-lg mb-4">メール送信</h3>
+      <div class="space-y-3">
+        <!-- テンプレート選択 -->
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block">テンプレートから選択</label>
+          <select @change="applyTemplate($event.target.value)"
+                  class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary">
+            <option value="">テンプレートを選択...</option>
+            <template x-for="t in emailTemplates" :key="t.id">
+              <option :value="t.id" x-text="t.name"></option>
+            </template>
+          </select>
+        </div>
+        <input type="email" x-model="emailForm.to" placeholder="送信先メール"
+               class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary">
+        <input type="text" x-model="emailForm.subject" placeholder="件名"
+               class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary">
+        <textarea x-model="emailForm.body" placeholder="本文"
+                  class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary resize-none"
+                  rows="8"></textarea>
+      </div>
+      <div class="flex gap-3 mt-5">
+        <button @click="emailModalOpen = false" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">キャンセル</button>
+        <button @click="sendEmail()" :disabled="sending"
+                class="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50">
+          <i class="fas fa-paper-plane mr-2"></i>
+          <span x-text="sending ? '送信中...' : '送信'"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- ======================================================
+     トースト通知
+====================================================== -->
+<template x-if="toast.show">
+  <div class="fixed bottom-6 right-6 z-[60] fade-in">
+    <div class="flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl text-white text-sm font-medium"
+         :class="toast.type === 'error' ? 'bg-red-500' : 'bg-warm'">
+      <i :class="toast.type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle'"></i>
+      <span x-text="toast.message"></span>
+    </div>
+  </div>
+</template>
+
+<!-- ======================================================
+     JavaScript
+====================================================== -->
+<script>
+function app() {
+  return {
+    // ── 状態 ──────────────────────────────────────
+    currentPage: 'dashboard',
+    loading: false,
+    pageError: null,
+    lastRefreshed: null,
+
+    currentUser: { email: '', displayName: '' },
+
+    navItems: [
+      { id: 'dashboard',  label: 'ダッシュボード',     icon: 'fas fa-chart-pie',      badge: null },
+      { id: 'inquiries',  label: '問い合わせ一覧',     icon: 'fas fa-inbox',          badge: null },
+      { id: 'followups',  label: 'フォローアップ',     icon: 'fas fa-calendar-alt',   badge: 'overdue' },
+      { id: 'templates',  label: 'メールテンプレート', icon: 'fas fa-envelope-open-text', badge: null },
+    ],
+
+    // ダッシュボード
+    dashboardData: null,
+
+    // 問い合わせ一覧
+    inquiries: [],
+    searchQ: '',
+    filterStatus: 'all',
+
+    // 詳細パネル
+    detailOpen: false,
+    inquiryDetail: null,
+    editStatus: '',
+    editAssignee: '',
+    editNotes: '',
+
+    // フォローアップ
+    followUps: [],
+    fuFilter: 'pending',
+
+    // メールテンプレート
+    emailTemplates: [],
+
+    // モーダル
+    addActionOpen: false,
+    newAction: { type: '電話', content: '' },
+    addFuOpen: false,
+    newFu: { dueDate: '', subject: '', content: '' },
+    emailModalOpen: false,
+    emailForm: { to: '', subject: '', body: '', inquiryId: null },
+    sending: false,
+
+    // トースト
+    toast: { show: false, message: '', type: 'success' },
+
+    // ── 初期化 ──────────────────────────────────────
+    async init() {
+      this.currentUser = await this.call('getCurrentUser');
+      this.emailTemplates = await this.call('getEmailTemplates');
+      await this.loadDashboard();
+    },
+
+    get currentPageTitle() {
+      return this.navItems.find(n => n.id === this.currentPage)?.label || '';
+    },
+
+    getBadgeCount(badge) {
+      if (badge === 'overdue') return this.dashboardData?.overdueFu || 0;
+      return 0;
+    },
+
+    // ── ナビゲーション ──────────────────────────────
+    async navigate(pageId) {
+      this.currentPage = pageId;
+      this.detailOpen = false;
+      this.pageError = null;
+      if (pageId === 'dashboard') await this.loadDashboard();
+      else if (pageId === 'inquiries') await this.loadInquiries();
+      else if (pageId === 'followups') await this.loadFollowUps();
+      else if (pageId === 'templates') await this.loadTemplates();
+    },
+
+    async refreshPage() {
+      await this.navigate(this.currentPage);
+    },
+
+    // ── データ取得 ──────────────────────────────────
+    async loadDashboard() {
+      this.loading = true;
+      try {
+        this.dashboardData = await this.call('getDashboardStats');
+        if (this.dashboardData?.error) { this.pageError = this.dashboardData.error; this.dashboardData = null; }
+        this.lastRefreshed = new Date().toLocaleTimeString('ja-JP');
+      } finally { this.loading = false; }
+    },
+
+    async loadInquiries() {
+      this.loading = true;
+      try {
+        const result = await this.call('getInquiries', { q: this.searchQ, status: this.filterStatus });
+        if (result?.error) { this.pageError = result.error; this.inquiries = []; }
+        else this.inquiries = result || [];
+        this.lastRefreshed = new Date().toLocaleTimeString('ja-JP');
+      } finally { this.loading = false; }
+    },
+
+    async loadFollowUps() {
+      this.loading = true;
+      try {
+        const result = await this.call('getFollowUps', { status: this.fuFilter });
+        if (result?.error) { this.pageError = result.error; this.followUps = []; }
+        else this.followUps = result || [];
+      } finally { this.loading = false; }
+    },
+
+    async loadTemplates() {
+      this.emailTemplates = await this.call('getEmailTemplates');
+    },
+
+    // ── 詳細パネル ──────────────────────────────────
+    async openDetail(rowNum) {
+      this.loading = true;
+      const result = await this.call('getInquiryDetail', rowNum);
+      this.loading = false;
+      if (result?.error) { this.showToast(result.error, 'error'); return; }
+      this.inquiryDetail = result;
+      this.editStatus   = result.status;
+      this.editAssignee = result.assignee;
+      this.editNotes    = result.notes;
+      this.detailOpen = true;
+    },
+
+    async saveStatus() {
+      const r = await this.call('updateInquiry', this.inquiryDetail.id, {
+        '対応状況': this.editStatus,
+        '担当者': this.editAssignee,
+      });
+      if (r?.error) { this.showToast(r.error, 'error'); return; }
+      this.inquiryDetail.status   = this.editStatus;
+      this.inquiryDetail.assignee = this.editAssignee;
+      this.showToast('保存しました');
+      if (this.currentPage === 'inquiries') await this.loadInquiries();
+      if (this.currentPage === 'dashboard') await this.loadDashboard();
+    },
+
+    async saveNotes() {
+      const r = await this.call('updateInquiry', this.inquiryDetail.id, { 'メモ': this.editNotes });
+      if (r?.error) { this.showToast(r.error, 'error'); return; }
+      this.showToast('メモを保存しました');
+    },
+
+    // ── 対応記録 ──────────────────────────────────
+    openAddAction() { this.newAction = { type: '電話', content: '' }; this.addActionOpen = true; },
+
+    async saveAction() {
+      if (!this.newAction.content.trim()) { this.showToast('内容を入力してください', 'error'); return; }
+      const r = await this.call('addAction', this.inquiryDetail.id, this.newAction.type, this.newAction.content);
+      if (r?.error) { this.showToast(r.error, 'error'); return; }
+      this.addActionOpen = false;
+      await this.openDetail(this.inquiryDetail.id);
+      this.showToast('対応記録を追加しました');
+    },
+
+    // ── フォローアップ ──────────────────────────────
+    openAddFollowUp() {
+      const d = new Date(); d.setDate(d.getDate() + 7);
+      this.newFu = { dueDate: d.toISOString().slice(0,10), subject: '', content: '' };
+      this.addFuOpen = true;
+    },
+
+    async saveFu() {
+      if (!this.newFu.dueDate || !this.newFu.subject.trim()) {
+        this.showToast('日付と件名を入力してください', 'error'); return;
+      }
+      const r = await this.call('addFollowUp', this.inquiryDetail.id, this.newFu.dueDate, this.newFu.subject, this.newFu.content);
+      if (r?.error) { this.showToast(r.error, 'error'); return; }
+      this.addFuOpen = false;
+      await this.openDetail(this.inquiryDetail.id);
+      this.showToast('フォローアップを追加しました');
+    },
+
+    async completeFu(rowNum) {
+      const r = await this.call('completeFollowUp', rowNum);
+      if (r?.error) { this.showToast(r.error, 'error'); return; }
+      await this.loadFollowUps();
+      this.showToast('完了にしました');
+    },
+
+    // ── メール ──────────────────────────────────────
+    openEmailModal(inquiryId, to, subject, body) {
+      this.emailForm = { to, subject, body, inquiryId };
+      this.emailModalOpen = true;
+    },
+
+    applyTemplate(id) {
+      const tmpl = this.emailTemplates.find(t => String(t.id) === String(id));
+      if (tmpl) {
+        this.emailForm.subject = tmpl.subject;
+        this.emailForm.body    = tmpl.body;
+      }
+    },
+
+    async sendEmail() {
+      if (!this.emailForm.to || !this.emailForm.subject) {
+        this.showToast('宛先と件名を入力してください', 'error'); return;
+      }
+      this.sending = true;
+      const r = await this.call('sendEmail', this.emailForm.to, this.emailForm.subject, this.emailForm.body, this.emailForm.inquiryId);
+      this.sending = false;
+      if (r?.error) { this.showToast(r.error, 'error'); return; }
+      this.emailModalOpen = false;
+      if (this.inquiryDetail) await this.openDetail(this.inquiryDetail.id);
+      this.showToast('メールを送信しました');
+    },
+
+    // ── テンプレート ──────────────────────────────────
+    editTemplate(tmpl) {
+      // 簡易インライン編集（将来モーダル化）
+      const name    = prompt('テンプレート名', tmpl.name);
+      const subject = prompt('件名', tmpl.subject);
+      const body    = prompt('本文（簡易）', tmpl.body);
+      if (name !== null) {
+        this.call('saveEmailTemplate', tmpl.id, name, subject, body).then(() => {
+          this.loadTemplates(); this.showToast('保存しました');
+        });
+      }
+    },
+
+    newTemplate() {
+      const name    = prompt('テンプレート名');
+      if (!name) return;
+      const subject = prompt('件名') || '';
+      const body    = prompt('本文') || '';
+      this.call('saveEmailTemplate', null, name, subject, body).then(() => {
+        this.loadTemplates(); this.showToast('テンプレートを追加しました');
+      });
+    },
+
+    // ── 初期設定 ──────────────────────────────────
+    async openSetup() {
+      if (!confirm('シートの初期設定を実行します（既存データは保持）。よろしいですか？')) return;
+      const r = await this.call('setupSheets');
+      if (r?.error) this.showToast(r.error, 'error');
+      else this.showToast(r.message || '初期設定が完了しました');
+    },
+
+    // ── ユーティリティ ──────────────────────────────
+    statusClass(status) {
+      const map = {
+        '新規':        'bg-blue-100 text-blue-700',
+        '対応中':      'bg-yellow-100 text-yellow-700',
+        '現地訪問済':  'bg-purple-100 text-purple-700',
+        '完了':        'bg-green-100 text-green-700',
+        'フォロー中':  'bg-orange-100 text-orange-700',
+        '未設定':      'bg-gray-100 text-gray-500',
+      };
+      return map[status] || 'bg-gray-100 text-gray-500';
+    },
+
+    showToast(message, type = 'success') {
+      this.toast = { show: true, message, type };
+      setTimeout(() => { this.toast.show = false; }, 3000);
+    },
+
+    // GAS バックエンド呼び出しラッパー
+    call(fn, ...args) {
+      return new Promise((resolve) => {
+        let runner = google.script.run.withSuccessHandler(resolve).withFailureHandler(e => {
+          resolve({ error: e.message || String(e) });
+        });
+        runner[fn](...args);
+      });
+    },
+  };
+}
+</script>
+</body>
+</html>
