@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 認証済みユーザーのみアクセス可能
+    // 必要に応じてドメイン制限を追加:
+    //   request.auth.token.email.matches('.*@your-domain.co.jp')
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // 問い合わせ
+    match /inquiries/{id} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // 対応履歴
+    match /actions/{id} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // フォローアップ
+    match /followups/{id} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // メールテンプレート
+    match /templates/{id} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // 設定・LP ニュース
+    match /config/{id} {
+      allow read, write: if isAuthenticated();
+    }
+  }
+}

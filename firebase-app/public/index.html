@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>介護基盤 管理ツール</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#2563A0', accent: '#E8732A', warm: '#3D8B5E',
+        },
+        fontFamily: { sans: ['"Noto Sans JP"', 'sans-serif'] }
+      }
+    }
+  }
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+<!-- Firebase SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+
+<script>
+// ▼ Firebase Console のプロジェクト設定からコピーして置き換えてください
+const firebaseConfig = {
+  apiKey:            "YOUR_API_KEY",
+  authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId:         "YOUR_PROJECT_ID",
+  storageBucket:     "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId:             "YOUR_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+const fns  = firebase.app().functions('asia-northeast1');
+</script>
+
+<style>
+  [x-cloak] { display: none !important; }
+  .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 2px; }
+  .status-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 10px; border-radius:9999px; font-size:.75rem; font-weight:600; }
+  .fade-in  { animation: fadeIn .2s ease; }
+  .panel-slide { animation: slideIn .25s ease; }
+  .nav-active-bar { position:relative; }
+  .nav-active-bar::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:3px; height:60%; background:#2563A0; border-radius:0 3px 3px 0; }
+  @keyframes fadeIn  { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+  @keyframes slideIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:none} }
+</style>
+</head>
+<body class="font-sans bg-gray-100 text-gray-800" x-data="app()" x-init="init()" x-cloak>
+
+<!-- ======================================================
+     ローディング画面
+====================================================== -->
+<template x-if="authLoading">
+  <div class="fixed inset-0 bg-white flex items-center justify-center z-50">
+    <div class="text-center">
+      <div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-heart-pulse text-white text-xl"></i>
+      </div>
+      <i class="fas fa-spinner fa-spin text-primary text-2xl"></i>
+    </div>
+  </div>
+</template>
+
+<!-- ======================================================
+     サインイン画面
+====================================================== -->
+<template x-if="!authLoading && !authUser">
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-xl p-10 w-full max-w-sm text-center fade-in">
+      <div class="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-5 shadow-md">
+        <i class="fas fa-heart-pulse text-white text-2xl"></i>
+      </div>
+      <h1 class="text-xl font-bold text-gray-900 mb-1">介護基盤 管理ツール</h1>
+      <p class="text-sm text-gray-400 mb-8">株式会社２７９</p>
+      <button @click="signIn()"
+              class="w-full flex items-center justify-center gap-3 px-6 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-gray-700 font-medium shadow-sm">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5" alt="Google">
+        Google でサインイン
+      </button>
+      <template x-if="signInError">
+        <p class="mt-4 text-sm text-red-500" x-text="signInError"></p>
+      </template>
+    </div>
+  </div>
+</template>
+
+<!-- ======================================================
+     メインアプリ（認証済み）
+====================================================== -->
+<template x-if="!authLoading && authUser">
+<div class="flex h-screen overflow-hidden">
+
+  <!-- サイドバー -->
+  <aside class="flex flex-col w-60 bg-white border-r border-gray-200 flex-shrink-0">
+    <div class="px-5 py-5 border-b border-gray-100">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-heart-pulse text-white text-xs"></i>
+        </div>
+        <div>
+          <div class="text-sm font-bold text-gray-900 leading-tight">株式会社２７９</div>
+          <div class="text-xs text-gray-400 leading-tight">介護基盤 管理ツール</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="flex-1 py-3 overflow-y-auto scrollbar-thin px-3">
+      <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-2 mt-1">メニュー</div>
+      <template x-for="item in navItems" :key="item.id">
+        <button @click="navigate(item.id)"
+          :class="currentPage===item.id ? 'nav-active-bar bg-blue-50 text-primary font-semibold' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'"
+          class="w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-all rounded-lg mb-0.5">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors"
+               :class="currentPage===item.id ? 'bg-primary/10' : ''">
+            <i :class="item.icon + (currentPage===item.id ? ' text-primary' : ' text-gray-400')" class="text-sm"></i>
+          </div>
+          <span x-text="item.label" class="flex-1 text-left"></span>
+          <template x-if="item.badge && getBadgeCount(item.badge) > 0">
+            <span class="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center font-medium"
+                  x-text="getBadgeCount(item.badge)"></span>
+          </template>
+        </button>
+      </template>
+    </nav>
+  </aside>
+
+  <!-- メインコンテンツ -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+
+    <!-- トップバー -->
+    <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between flex-shrink-0">
+      <div>
+        <h1 class="text-lg font-bold text-gray-900" x-text="currentPageTitle"></h1>
+        <p class="text-xs text-gray-400 mt-0.5" x-text="lastRefreshed ? '最終更新: '+lastRefreshed : ''"></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button @click="refreshPage()" class="text-gray-400 hover:text-primary transition-colors text-sm p-2 rounded-lg hover:bg-gray-100">
+          <i class="fas fa-rotate" :class="loading ? 'animate-spin' : ''"></i>
+        </button>
+
+        <!-- ユーザーメニュー -->
+        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+          <button @click="open = !open" class="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full hover:bg-gray-100 transition-colors">
+            <template x-if="currentUser.picture">
+              <img :src="currentUser.picture" :alt="currentUser.displayName" class="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-sm">
+            </template>
+            <template x-if="!currentUser.picture">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center text-white text-sm font-bold ring-2 ring-white shadow-sm"
+                   x-text="currentUser.displayName ? currentUser.displayName[0].toUpperCase() : '?'"></div>
+            </template>
+            <i class="fas fa-chevron-down text-gray-400 text-xs" :class="open ? 'rotate-180' : ''"></i>
+          </button>
+          <template x-if="open">
+            <div class="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden fade-in">
+              <div class="px-5 py-5 bg-gradient-to-b from-blue-50 to-white border-b border-gray-100 text-center">
+                <template x-if="currentUser.picture">
+                  <img :src="currentUser.picture" class="w-16 h-16 rounded-full object-cover mx-auto mb-3 ring-4 ring-white shadow-md">
+                </template>
+                <template x-if="!currentUser.picture">
+                  <div class="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center text-white text-2xl font-bold mx-auto mb-3"
+                       x-text="currentUser.displayName ? currentUser.displayName[0].toUpperCase() : '?'"></div>
+                </template>
+                <div class="font-semibold text-gray-900 text-sm" x-text="currentUser.displayName"></div>
+                <div class="text-xs text-gray-500 mt-0.5" x-text="currentUser.email"></div>
+              </div>
+              <div class="px-4 py-3 space-y-2">
+                <a href="https://myaccount.google.com" target="_blank"
+                   class="flex items-center justify-center gap-2 w-full py-2 px-4 text-sm text-gray-600 border border-gray-200 rounded-full hover:bg-gray-50 transition-colors">
+                  <img src="https://www.gstatic.com/images/branding/googleg/1x/googleg_standard_color_28dp.png" class="w-4 h-4">
+                  Google アカウントを管理
+                </a>
+                <button @click="signOut()" class="w-full py-2 px-4 text-sm text-red-500 hover:bg-red-50 rounded-full transition-colors">
+                  <i class="fas fa-sign-out-alt mr-2"></i>サインアウト
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </header>
+
+    <!-- コンテンツエリア -->
+    <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
+
+      <template x-if="pageError">
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm mb-4 fade-in">
+          <i class="fas fa-exclamation-circle mr-2"></i><span x-text="pageError"></span>
+        </div>
+      </template>
+
+      <!-- ダッシュボード -->
+      <template x-if="currentPage==='dashboard' && dashboardData && !loading">
+        <div class="fade-in space-y-6">
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <div class="text-xs text-gray-400 font-medium mb-1">総問い合わせ数</div>
+              <div class="text-3xl font-bold text-gray-900" x-text="dashboardData.total"></div>
+              <div class="text-xs text-gray-400 mt-1">今週 <span class="text-primary font-semibold" x-text="'+'+dashboardData.weekNew"></span></div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <div class="text-xs text-gray-400 font-medium mb-1">本日の新規</div>
+              <div class="text-3xl font-bold text-accent" x-text="dashboardData.todayNew"></div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <div class="text-xs text-gray-400 font-medium mb-1">対応中</div>
+              <div class="text-3xl font-bold text-primary" x-text="(dashboardData.statusCounts['対応中']||0)+(dashboardData.statusCounts['現地訪問済']||0)"></div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100" :class="dashboardData.overdueFu>0?'border-red-200 bg-red-50':''">
+              <div class="text-xs text-gray-400 font-medium mb-1">期限切れFU</div>
+              <div class="text-3xl font-bold" :class="dashboardData.overdueFu>0?'text-red-500':'text-gray-400'" x-text="dashboardData.overdueFu"></div>
+            </div>
+          </div>
+          <div class="grid lg:grid-cols-3 gap-4">
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <h3 class="text-sm font-semibold text-gray-700 mb-4">ステータス内訳</h3>
+              <template x-for="s in ['新規','対応中','現地訪問済','完了','フォロー中']" :key="s">
+                <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                  <span class="status-badge" :class="statusClass(s)" x-text="s"></span>
+                  <span class="font-bold text-gray-800" x-text="dashboardData.statusCounts[s]||0"></span>
+                </div>
+              </template>
+            </div>
+            <div class="lg:col-span-2 bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <h3 class="text-sm font-semibold text-gray-700 mb-4">直近の問い合わせ</h3>
+              <template x-for="row in dashboardData.recent" :key="row.id">
+                <div @click="openDetail(row.id)" class="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50 rounded-lg px-2 -mx-2 transition-colors">
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium text-gray-800 truncate" x-text="row.corp+' '+row.office"></div>
+                    <div class="text-xs text-gray-400" x-text="row.name+' / '+row.timestamp"></div>
+                  </div>
+                  <span class="status-badge flex-shrink-0" :class="statusClass(row.status)" x-text="row.status"></span>
+                  <i class="fas fa-chevron-right text-gray-300 text-xs flex-shrink-0"></i>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- 問い合わせ一覧 -->
+      <template x-if="currentPage==='inquiries'">
+        <div class="fade-in">
+          <div class="flex flex-wrap gap-3 mb-5">
+            <div class="relative flex-1 min-w-48">
+              <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input type="text" x-model="searchQ" @input.debounce.300ms="filterInquiries()"
+                     placeholder="法人名・事業所名・担当者・メール"
+                     class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-primary">
+            </div>
+            <select x-model="filterStatus" @change="filterInquiries()"
+                    class="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-primary">
+              <option value="all">すべてのステータス</option>
+              <template x-for="s in ['新規','対応中','現地訪問済','完了','フォロー中']" :key="s">
+                <option :value="s" x-text="s"></option>
+              </template>
+            </select>
+            <span class="text-sm text-gray-400 flex items-center" x-text="filteredInquiries.length+'件'"></span>
+          </div>
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-gray-100 bg-gray-50">
+                    <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs">問い合わせ日</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs">法人・事業所名</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs hidden md:table-cell">都道府県</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs hidden lg:table-cell">担当者</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs">ステータス</th>
+                    <th class="py-3 px-4"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-if="filteredInquiries.length===0 && !loading">
+                    <tr><td colspan="6" class="text-center py-12 text-gray-400 text-sm">データがありません</td></tr>
+                  </template>
+                  <template x-for="row in filteredInquiries" :key="row.id">
+                    <tr @click="openDetail(row.id)" class="border-b border-gray-50 hover:bg-blue-50/40 cursor-pointer transition-colors">
+                      <td class="py-3 px-4 text-gray-500 text-xs whitespace-nowrap" x-text="row.timestamp.slice(0,10)"></td>
+                      <td class="py-3 px-4"><div class="font-medium text-gray-800" x-text="row.corp"></div><div class="text-xs text-gray-400" x-text="row.office"></div></td>
+                      <td class="py-3 px-4 text-gray-500 text-xs hidden md:table-cell" x-text="row.prefecture"></td>
+                      <td class="py-3 px-4 hidden lg:table-cell"><div class="text-sm" x-text="row.name"></div><div class="text-xs text-gray-400" x-text="row.email"></div></td>
+                      <td class="py-3 px-4"><span class="status-badge" :class="statusClass(row.status)" x-text="row.status"></span></td>
+                      <td class="py-3 px-4 text-right"><i class="fas fa-chevron-right text-gray-300 text-xs"></i></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- フォローアップ -->
+      <template x-if="currentPage==='followups'">
+        <div class="fade-in space-y-3">
+          <div class="flex gap-3 mb-4">
+            <button @click="fuFilter='pending'; loadFollowUps()" :class="fuFilter==='pending'?'bg-primary text-white':'bg-white text-gray-600 border border-gray-200'" class="px-4 py-2 rounded-xl text-sm font-medium transition-colors">未完了</button>
+            <button @click="fuFilter='all'; loadFollowUps()"    :class="fuFilter==='all'?'bg-primary text-white':'bg-white text-gray-600 border border-gray-200'" class="px-4 py-2 rounded-xl text-sm font-medium transition-colors">すべて</button>
+          </div>
+          <template x-if="followUps.length===0">
+            <div class="bg-white rounded-2xl p-12 text-center text-gray-400 shadow-sm border border-gray-100">
+              <i class="fas fa-bell-slash text-4xl mb-3 text-gray-200"></i><p class="text-sm">フォローアップ予定はありません</p>
+            </div>
+          </template>
+          <template x-for="fu in followUps" :key="fu.id">
+            <div class="bg-white rounded-2xl p-5 shadow-sm border flex gap-4 transition-colors"
+                 :class="fu.isOverdue?'border-red-200':fu.isToday?'border-yellow-300':'border-gray-100'">
+              <div class="flex-shrink-0 text-center w-14">
+                <div class="text-xs text-gray-400" x-text="fu.dueDate?fu.dueDate.slice(0,7):''"></div>
+                <div class="text-2xl font-bold" :class="fu.isOverdue?'text-red-500':fu.isToday?'text-yellow-600':'text-primary'" x-text="fu.dueDate?fu.dueDate.slice(8,10):'-'"></div>
+                <div class="text-xs mt-0.5 font-medium" :class="fu.isOverdue?'text-red-400':fu.isToday?'text-yellow-500':'text-gray-400'" x-text="fu.isOverdue?'期限切れ':fu.isToday?'今日':''"></div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start gap-2 flex-wrap">
+                  <span class="text-sm font-semibold text-gray-800" x-text="fu.subject"></span>
+                  <span class="status-badge" :class="fu.status==='完了'?'bg-green-100 text-green-700':'bg-yellow-100 text-yellow-700'" x-text="fu.status"></span>
+                </div>
+                <div class="text-xs text-gray-500 mt-1" x-text="fu.corp+' '+fu.office+' / '+fu.name"></div>
+                <div class="text-sm text-gray-600 mt-2 line-clamp-2" x-text="fu.content"></div>
+              </div>
+              <div class="flex-shrink-0 flex flex-col gap-2">
+                <button @click="openDetail(fu.inquiryId)" class="text-xs text-primary hover:underline">詳細</button>
+                <template x-if="fu.status!=='完了'">
+                  <button @click="completeFu(fu.id)" class="text-xs px-3 py-1.5 bg-warm/10 text-warm rounded-lg hover:bg-warm/20 transition-colors font-medium">完了</button>
+                </template>
+                <template x-if="fu.email">
+                  <button @click="openEmailModal(fu.inquiryId, fu.email, fu.subject, fu.content)" class="text-xs px-3 py-1.5 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors font-medium">送信</button>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+      </template>
+
+      <!-- メールテンプレート -->
+      <template x-if="currentPage==='templates'">
+        <div class="fade-in space-y-4">
+          <div class="flex justify-end mb-2">
+            <button @click="newTemplate()" class="bg-primary text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"><i class="fas fa-plus mr-2"></i>新しいテンプレート</button>
+          </div>
+          <template x-for="tmpl in emailTemplates" :key="tmpl.id">
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="font-semibold text-gray-800" x-text="tmpl.name"></h3>
+                <button @click="editTemplate(tmpl)" class="text-xs text-gray-400 hover:text-primary"><i class="fas fa-edit mr-1"></i>編集</button>
+              </div>
+              <div class="text-sm text-gray-600 font-medium mb-1">件名: <span x-text="tmpl.subject"></span></div>
+              <div class="text-sm text-gray-500 whitespace-pre-wrap line-clamp-3" x-text="tmpl.body"></div>
+            </div>
+          </template>
+        </div>
+      </template>
+
+      <!-- LP 管理 -->
+      <template x-if="currentPage==='lp'">
+        <div class="fade-in space-y-5">
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-wrap items-center gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="text-xs text-gray-400 mb-1">GitHub Pages LP</div>
+              <a href="https://ytsukuda4470.github.io/kaigo-joho-kiban-lp/" target="_blank" class="text-sm font-medium text-primary hover:underline inline-flex items-center gap-1">
+                ytsukuda4470.github.io/kaigo-joho-kiban-lp <i class="fas fa-arrow-up-right-from-square text-xs"></i>
+              </a>
+            </div>
+            <div class="text-center">
+              <div class="text-xs text-gray-400 mb-1">自動収集 最終実行</div>
+              <template x-if="lpWorkflow.run">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full" :class="lpWorkflow.run.conclusion==='success'?'bg-green-400':lpWorkflow.run.status==='in_progress'?'bg-yellow-400 animate-pulse':'bg-red-400'"></span>
+                  <span class="text-xs text-gray-600" x-text="lpWorkflow.run.createdAt"></span>
+                  <a :href="lpWorkflow.run.url" target="_blank" class="text-xs text-primary hover:underline">ログ</a>
+                </div>
+              </template>
+            </div>
+            <button @click="runAutoScrape()" :disabled="lpScraping" class="flex items-center gap-2 px-4 py-2.5 bg-warm/10 text-warm rounded-xl text-sm font-semibold hover:bg-warm/20 transition-colors disabled:opacity-50">
+              <i class="fas fa-robot" :class="lpScraping?'animate-spin':''"></i>
+              <span x-text="lpScraping?'実行中...':'ニュース自動収集'"></span>
+            </button>
+            <button @click="publishLP()" :disabled="lpPublishing||lpItems.length===0" class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-sm">
+              <i class="fas fa-cloud-arrow-up" :class="lpPublishing?'animate-bounce':''"></i>
+              <span x-text="lpPublishing?'公開中...':'LP に公開'"></span>
+            </button>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div><h3 class="font-semibold text-gray-900">ニュース記事</h3><p class="text-xs text-gray-400 mt-0.5">編集後「LP に公開」で GitHub Pages に反映されます</p></div>
+              <button @click="addLPItem()" class="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium transition-colors">
+                <i class="fas fa-circle-plus text-primary"></i>記事を追加
+              </button>
+            </div>
+            <template x-if="lpLoading"><div class="py-12 text-center text-gray-400 text-sm"><i class="fas fa-spinner fa-spin text-2xl text-primary mb-3 block"></i>読み込み中...</div></template>
+            <template x-if="!lpLoading">
+              <div class="divide-y divide-gray-50">
+                <template x-for="(item, idx) in lpItems" :key="idx">
+                  <div class="px-5 py-4 flex gap-4 items-start hover:bg-gray-50/50 group">
+                    <div class="flex-shrink-0 flex flex-col gap-1 pt-1">
+                      <button @click="moveLPItem(idx,-1)" :disabled="idx===0" class="w-6 h-6 rounded-lg text-gray-300 hover:text-gray-500 hover:bg-gray-100 disabled:opacity-20 flex items-center justify-center text-xs"><i class="fas fa-chevron-up"></i></button>
+                      <button @click="moveLPItem(idx,1)"  :disabled="idx===lpItems.length-1" class="w-6 h-6 rounded-lg text-gray-300 hover:text-gray-500 hover:bg-gray-100 disabled:opacity-20 flex items-center justify-center text-xs"><i class="fas fa-chevron-down"></i></button>
+                    </div>
+                    <div class="flex-1 grid grid-cols-12 gap-2">
+                      <input x-model="item.date"   @input="lpDirty=true" placeholder="2026/04" class="col-span-2 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-primary">
+                      <input x-model="item.source" @input="lpDirty=true" placeholder="媒体名"  class="col-span-2 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-primary">
+                      <input x-model="item.title"  @input="lpDirty=true" placeholder="記事タイトル" class="col-span-5 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-primary">
+                      <input x-model="item.url"    @input="lpDirty=true" placeholder="https://..." class="col-span-3 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-primary">
+                    </div>
+                    <button @click="removeLPItem(idx)" class="flex-shrink-0 w-7 h-7 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 flex items-center justify-center opacity-0 group-hover:opacity-100 mt-0.5"><i class="fas fa-trash text-xs"></i></button>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+          <template x-if="lpDirty">
+            <div class="text-xs text-amber-600 text-center flex items-center justify-center gap-1.5">
+              <i class="fas fa-circle-dot animate-pulse"></i>未保存の変更があります。「LP に公開」で GitHub Pages に反映してください。
+            </div>
+          </template>
+        </div>
+      </template>
+
+    </main>
+  </div>
+</div>
+</template>
+
+<!-- ======================================================
+     詳細パネル
+====================================================== -->
+<template x-if="detailOpen && inquiryDetail">
+  <div class="fixed inset-0 z-40 flex" @click.self="detailOpen=false">
+    <div class="ml-auto w-full max-w-2xl bg-white shadow-2xl overflow-y-auto panel-slide flex flex-col h-full">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50 flex-shrink-0">
+        <div>
+          <h2 class="font-bold text-gray-900 text-lg" x-text="inquiryDetail.corp"></h2>
+          <p class="text-sm text-gray-500" x-text="inquiryDetail.office+' / '+inquiryDetail.name"></p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="status-badge text-base px-3 py-1" :class="statusClass(inquiryDetail.status)" x-text="inquiryDetail.status"></span>
+          <button @click="detailOpen=false" class="text-gray-400 hover:text-gray-700 ml-2"><i class="fas fa-times text-lg"></i></button>
+        </div>
+      </div>
+      <div class="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+        <section>
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">基本情報</h3>
+          <div class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+            <div><span class="text-gray-400">法人名</span><div class="font-medium" x-text="inquiryDetail.corp"></div></div>
+            <div><span class="text-gray-400">事業所名</span><div class="font-medium" x-text="inquiryDetail.office"></div></div>
+            <div><span class="text-gray-400">担当者</span><div class="font-medium" x-text="inquiryDetail.name+' '+(inquiryDetail.role||'')"></div></div>
+            <div><span class="text-gray-400">事業所数</span><div class="font-medium" x-text="inquiryDetail.officeCount||'-'"></div></div>
+            <div><span class="text-gray-400">メール</span><a :href="'mailto:'+inquiryDetail.email" class="font-medium text-primary hover:underline" x-text="inquiryDetail.email"></a></div>
+            <div><span class="text-gray-400">電話</span><a :href="'tel:'+inquiryDetail.phone" class="font-medium text-primary hover:underline" x-text="inquiryDetail.phone"></a></div>
+            <div><span class="text-gray-400">都道府県</span><div class="font-medium" x-text="inquiryDetail.prefecture"></div></div>
+            <div><span class="text-gray-400">問い合わせ日</span><div class="font-medium" x-text="inquiryDetail.timestamp"></div></div>
+          </div>
+          <div class="mt-3">
+            <span class="text-gray-400 text-sm">お問い合わせ内容</span>
+            <div class="mt-1 bg-gray-50 rounded-xl p-3 text-sm whitespace-pre-wrap text-gray-700" x-text="inquiryDetail.message||'（なし）'"></div>
+          </div>
+        </section>
+        <section>
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">対応管理</h3>
+          <div class="flex flex-wrap gap-3">
+            <select x-model="editStatus" class="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary">
+              <template x-for="s in ['新規','対応中','現地訪問済','完了','フォロー中']" :key="s"><option :value="s" x-text="s"></option></template>
+            </select>
+            <input x-model="editAssignee" placeholder="担当者" class="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary">
+            <button @click="saveStatus()" class="bg-primary text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">保存</button>
+          </div>
+          <textarea x-model="editNotes" placeholder="メモ・備考" class="w-full mt-3 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary resize-none" rows="3"></textarea>
+          <button @click="saveNotes()" class="mt-1 text-xs text-primary hover:underline">メモを保存</button>
+        </section>
+        <section class="flex flex-wrap gap-2">
+          <button @click="openEmailModal(inquiryDetail.id, inquiryDetail.email,'','')" class="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl text-sm font-medium hover:bg-primary/20 transition-colors"><i class="fas fa-paper-plane"></i>メール送信</button>
+          <button @click="openAddAction()" class="flex items-center gap-2 px-4 py-2 bg-warm/10 text-warm rounded-xl text-sm font-medium hover:bg-warm/20 transition-colors"><i class="fas fa-pencil"></i>対応記録</button>
+          <button @click="openAddFollowUp()" class="flex items-center gap-2 px-4 py-2 bg-accent/10 text-accent rounded-xl text-sm font-medium hover:bg-accent/20 transition-colors"><i class="fas fa-circle-plus"></i>フォローアップ追加</button>
+        </section>
+        <section>
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">対応履歴</h3>
+          <template x-if="inquiryDetail.actions.length===0"><p class="text-sm text-gray-400">記録がありません</p></template>
+          <div class="space-y-3">
+            <template x-for="act in inquiryDetail.actions" :key="act.id">
+              <div class="flex gap-3">
+                <div class="flex-shrink-0 mt-1"><div class="w-7 h-7 rounded-full flex items-center justify-center text-xs" :class="act.type==='メール送信'?'bg-primary/10 text-primary':'bg-warm/10 text-warm'"><i :class="act.type==='メール送信'?'fas fa-paper-plane':'fas fa-message'"></i></div></div>
+                <div class="flex-1 bg-gray-50 rounded-xl p-3 text-sm">
+                  <div class="flex justify-between items-center mb-1"><span class="font-medium text-gray-700" x-text="act.type"></span><span class="text-xs text-gray-400" x-text="act.date+' / '+act.staff"></span></div>
+                  <div class="text-gray-600 whitespace-pre-wrap text-xs" x-text="act.content"></div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </section>
+        <section>
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">フォローアップ予定</h3>
+          <template x-if="inquiryDetail.followups.length===0"><p class="text-sm text-gray-400">予定がありません</p></template>
+          <div class="space-y-2">
+            <template x-for="fu in inquiryDetail.followups" :key="fu.id">
+              <div class="flex items-center gap-3 bg-gray-50 rounded-xl p-3 text-sm">
+                <div class="w-16 flex-shrink-0"><div class="text-xs text-gray-400" x-text="fu.dueDate"></div></div>
+                <div class="flex-1 min-w-0"><div class="font-medium text-gray-700 truncate" x-text="fu.subject"></div><div class="text-xs text-gray-400 truncate" x-text="fu.content"></div></div>
+                <span class="status-badge" :class="fu.status==='完了'?'bg-green-100 text-green-700':'bg-yellow-100 text-yellow-700'" x-text="fu.status"></span>
+              </div>
+            </template>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- モーダル（対応記録） -->
+<template x-if="addActionOpen">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" @click.self="addActionOpen=false">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl fade-in">
+      <h3 class="font-bold text-gray-900 text-lg mb-4">対応記録を追加</h3>
+      <div class="space-y-3">
+        <select x-model="newAction.type" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary">
+          <option>電話</option><option>訪問</option><option>メール送信</option><option>打ち合わせ</option><option>その他</option>
+        </select>
+        <textarea x-model="newAction.content" placeholder="対応内容を入力..." class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary resize-none" rows="4"></textarea>
+      </div>
+      <div class="flex gap-3 mt-5">
+        <button @click="addActionOpen=false" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600">キャンセル</button>
+        <button @click="saveAction()" class="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-blue-700 transition-colors">保存</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- モーダル（フォローアップ） -->
+<template x-if="addFuOpen">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" @click.self="addFuOpen=false">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl fade-in">
+      <h3 class="font-bold text-gray-900 text-lg mb-4">フォローアップを追加</h3>
+      <div class="space-y-3">
+        <input type="date" x-model="newFu.dueDate" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary">
+        <input type="text" x-model="newFu.subject" placeholder="件名" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary">
+        <textarea x-model="newFu.content" placeholder="内容・メモ" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary resize-none" rows="3"></textarea>
+      </div>
+      <div class="flex gap-3 mt-5">
+        <button @click="addFuOpen=false" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600">キャンセル</button>
+        <button @click="saveFu()" class="flex-1 py-2.5 rounded-xl bg-accent text-white text-sm font-medium">追加</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- モーダル（メール送信） -->
+<template x-if="emailModalOpen">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" @click.self="emailModalOpen=false">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl fade-in">
+      <h3 class="font-bold text-gray-900 text-lg mb-4">メール送信</h3>
+      <div class="space-y-3">
+        <select @change="applyTemplate($event.target.value)" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary">
+          <option value="">テンプレートを選択...</option>
+          <template x-for="t in emailTemplates" :key="t.id"><option :value="t.id" x-text="t.name"></option></template>
+        </select>
+        <input type="email" x-model="emailForm.to"      placeholder="送信先メール" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary">
+        <input type="text"  x-model="emailForm.subject" placeholder="件名"        class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary">
+        <textarea x-model="emailForm.body" placeholder="本文" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary resize-none" rows="8"></textarea>
+      </div>
+      <div class="flex gap-3 mt-5">
+        <button @click="emailModalOpen=false" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600">キャンセル</button>
+        <button @click="doSendEmail()" :disabled="sending" class="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50">
+          <i class="fas fa-arrow-up-right mr-2"></i><span x-text="sending?'送信中...':'送信'"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- トースト -->
+<template x-if="toast.show">
+  <div class="fixed bottom-6 right-6 z-[60] fade-in">
+    <div class="flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl text-white text-sm font-medium" :class="toast.type==='error'?'bg-red-500':'bg-warm'">
+      <i :class="toast.type==='error'?'fas fa-exclamation-circle':'fas fa-check-circle'"></i>
+      <span x-text="toast.message"></span>
+    </div>
+  </div>
+</template>
+
+<script>
+function app() {
+  return {
+    // ── 認証 ──────────────────────────────────────────
+    authUser:    null,
+    authLoading: true,
+    signInError: null,
+    currentUser: { email:'', displayName:'', picture:'' },
+
+    // ── ナビ ──────────────────────────────────────────
+    currentPage: 'dashboard',
+    loading: false,
+    pageError: null,
+    lastRefreshed: null,
+
+    navItems: [
+      { id:'dashboard', label:'ダッシュボード',     icon:'fas fa-gauge-high',    badge:null },
+      { id:'inquiries', label:'問い合わせ一覧',     icon:'fas fa-table-list',    badge:null },
+      { id:'followups', label:'フォローアップ',     icon:'fas fa-bell',          badge:'overdue' },
+      { id:'templates', label:'メールテンプレート', icon:'fas fa-pen-to-square', badge:null },
+      { id:'lp',        label:'LP 管理',           icon:'fas fa-globe',         badge:null },
+    ],
+
+    // ── データ ────────────────────────────────────────
+    dashboardData: null,
+    allInquiries: [],
+    filteredInquiries: [],
+    searchQ: '',
+    filterStatus: 'all',
+
+    detailOpen: false,
+    inquiryDetail: null,
+    editStatus: '',
+    editAssignee: '',
+    editNotes: '',
+
+    followUps: [],
+    fuFilter: 'pending',
+
+    emailTemplates: [],
+
+    // LP 管理
+    lpItems: [], lpLoading:false, lpDirty:false, lpPublishing:false, lpScraping:false, lpWorkflow:{ run:null },
+
+    // モーダル
+    addActionOpen: false, newAction:{ type:'電話', content:'' },
+    addFuOpen: false,     newFu:{ dueDate:'', subject:'', content:'' },
+    emailModalOpen: false, emailForm:{ to:'', subject:'', body:'', inquiryId:null }, sending:false,
+    toast: { show:false, message:'', type:'success' },
+
+    // ── 初期化 ────────────────────────────────────────
+    async init() {
+      auth.onAuthStateChanged(async user => {
+        this.authUser = user;
+        this.authLoading = false;
+        if (user) {
+          this.currentUser = {
+            email:       user.email,
+            displayName: user.displayName || user.email.split('@')[0],
+            picture:     user.photoURL || '',
+          };
+          this.emailTemplates = await this.getTemplates();
+          await this.loadDashboard();
+        }
+      });
+    },
+
+    async signIn() {
+      this.signInError = null;
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        await auth.signInWithPopup(provider);
+      } catch(e) {
+        this.signInError = e.message;
+      }
+    },
+
+    async signOut() {
+      await auth.signOut();
+    },
+
+    get currentPageTitle() { return this.navItems.find(n=>n.id===this.currentPage)?.label||''; },
+    getBadgeCount(b) { if(b==='overdue') return this.dashboardData?.overdueFu||0; return 0; },
+
+    // ── ナビゲーション ────────────────────────────────
+    async navigate(pageId) {
+      this.currentPage = pageId;
+      this.detailOpen  = false;
+      this.pageError   = null;
+      if      (pageId==='dashboard') await this.loadDashboard();
+      else if (pageId==='inquiries') await this.loadInquiries();
+      else if (pageId==='followups') await this.loadFollowUps();
+      else if (pageId==='templates') this.emailTemplates = await this.getTemplates();
+      else if (pageId==='lp')        await this.loadLPPage();
+    },
+
+    async refreshPage() { await this.navigate(this.currentPage); },
+
+    // ── ダッシュボード ────────────────────────────────
+    async loadDashboard() {
+      this.loading = true;
+      try {
+        const snap = await db.collection('inquiries').orderBy('createdAt','desc').get();
+        const rows = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+
+        const statusCounts = {};
+        ['新規','対応中','現地訪問済','完了','フォロー中'].forEach(s => statusCounts[s]=0);
+        rows.forEach(r => { const s=r.status||'新規'; statusCounts[s]=(statusCounts[s]||0)+1; });
+
+        const now   = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const week  = new Date(today); week.setDate(week.getDate()-7);
+        const ts    = r => r.createdAt?.toDate ? r.createdAt.toDate() : new Date(r.createdAt||0);
+
+        const fuSnap = await db.collection('followups').where('status','!=','完了').get();
+        const overdueFu = fuSnap.docs.filter(d => {
+          const due = d.data().dueDate?.toDate ? d.data().dueDate.toDate() : null;
+          return due && due < today;
+        }).length;
+
+        this.dashboardData = {
+          total: rows.length,
+          todayNew:    rows.filter(r => ts(r) >= today).length,
+          weekNew:     rows.filter(r => ts(r) >= week).length,
+          statusCounts, overdueFu,
+          recent: rows.slice(0,5).map(r => ({
+            id: r.id, corp: r.corp||'', office: r.office||'',
+            status: r.status||'新規', name: r.name||'',
+            timestamp: this.fmtDate(r.createdAt),
+          })),
+        };
+        this.lastRefreshed = new Date().toLocaleTimeString('ja-JP');
+      } catch(e) { this.pageError = e.message; }
+      finally { this.loading = false; }
+    },
+
+    // ── 問い合わせ一覧 ────────────────────────────────
+    async loadInquiries() {
+      this.loading = true;
+      try {
+        const snap = await db.collection('inquiries').orderBy('createdAt','desc').get();
+        this.allInquiries = snap.docs.map(d => ({
+          id: d.id,
+          timestamp:  this.fmtDate(d.data().createdAt),
+          corp:       d.data().corp||'',
+          office:     d.data().office||'',
+          prefecture: d.data().prefecture||'',
+          name:       d.data().name||'',
+          email:      d.data().email||'',
+          phone:      d.data().phone||'',
+          status:     d.data().status||'新規',
+          assignee:   d.data().assignee||'',
+          lastUpdated: this.fmtDate(d.data().updatedAt),
+        }));
+        this.filterInquiries();
+        this.lastRefreshed = new Date().toLocaleTimeString('ja-JP');
+      } catch(e) { this.pageError = e.message; }
+      finally { this.loading = false; }
+    },
+
+    filterInquiries() {
+      const q = this.searchQ.toLowerCase();
+      this.filteredInquiries = this.allInquiries.filter(r => {
+        const matchStatus = this.filterStatus==='all' || r.status===this.filterStatus;
+        const matchQ = !q || r.corp.toLowerCase().includes(q) || r.office.toLowerCase().includes(q) ||
+                       r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q);
+        return matchStatus && matchQ;
+      });
+    },
+
+    // ── 詳細パネル ────────────────────────────────────
+    async openDetail(id) {
+      this.loading = true;
+      try {
+        const doc  = await db.collection('inquiries').doc(id).get();
+        const data = doc.data()||{};
+
+        const [actSnap, fuSnap] = await Promise.all([
+          db.collection('actions').where('inquiryId','==',id).orderBy('createdAt','desc').get(),
+          db.collection('followups').where('inquiryId','==',id).orderBy('dueDate','asc').get(),
+        ]);
+
+        this.inquiryDetail = {
+          id,
+          timestamp:  this.fmtDate(data.createdAt),
+          corp:        data.corp||'', office:  data.office||'',
+          zip:         data.zip||'',  prefecture: data.prefecture||'',
+          phone:       data.phone||'', name:   data.name||'',
+          role:        data.role||'',  email:  data.email||'',
+          officeCount: data.officeCount||'', careplanLinkage: data.careplanLinkage||'',
+          densou:      data.densou||'',  interest: data.interest||'',
+          message:     data.message||'',
+          status:      data.status||'新規',
+          assignee:    data.assignee||'',
+          notes:       data.notes||'',
+          actions: actSnap.docs.map(d => ({
+            id: d.id, date: this.fmtDate(d.data().createdAt),
+            type: d.data().type, content: d.data().content, staff: d.data().staff,
+          })),
+          followups: fuSnap.docs.map(d => ({
+            id: d.id, dueDate: this.fmtDateShort(d.data().dueDate),
+            subject: d.data().subject, content: d.data().content, status: d.data().status,
+          })),
+        };
+        this.editStatus   = this.inquiryDetail.status;
+        this.editAssignee = this.inquiryDetail.assignee;
+        this.editNotes    = this.inquiryDetail.notes;
+        this.detailOpen   = true;
+      } catch(e) { this.showToast(e.message,'error'); }
+      finally { this.loading = false; }
+    },
+
+    async saveStatus() {
+      await db.collection('inquiries').doc(this.inquiryDetail.id).update({
+        status: this.editStatus, assignee: this.editAssignee,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      this.inquiryDetail.status   = this.editStatus;
+      this.inquiryDetail.assignee = this.editAssignee;
+      this.showToast('保存しました');
+      if(this.currentPage==='inquiries') await this.loadInquiries();
+      if(this.currentPage==='dashboard') await this.loadDashboard();
+    },
+
+    async saveNotes() {
+      await db.collection('inquiries').doc(this.inquiryDetail.id).update({
+        notes: this.editNotes, updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      this.showToast('メモを保存しました');
+    },
+
+    // ── 対応記録 ──────────────────────────────────────
+    openAddAction() { this.newAction={ type:'電話', content:'' }; this.addActionOpen=true; },
+
+    async saveAction() {
+      if(!this.newAction.content.trim()) { this.showToast('内容を入力してください','error'); return; }
+      await db.collection('actions').add({
+        inquiryId: this.inquiryDetail.id,
+        type:      this.newAction.type,
+        content:   this.newAction.content,
+        staff:     this.currentUser.displayName,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      this.addActionOpen = false;
+      await this.openDetail(this.inquiryDetail.id);
+      this.showToast('対応記録を追加しました');
+    },
+
+    // ── フォローアップ ────────────────────────────────
+    async loadFollowUps() {
+      this.loading = true;
+      const today = new Date(); today.setHours(0,0,0,0);
+      try {
+        let q = db.collection('followups').orderBy('dueDate','asc');
+        if(this.fuFilter==='pending') q = q.where('status','!=','完了');
+        const snap = await q.get();
+
+        const inqIds = [...new Set(snap.docs.map(d=>d.data().inquiryId))];
+        const inqMap = {};
+        await Promise.all(inqIds.map(async id => {
+          const d = await db.collection('inquiries').doc(id).get();
+          inqMap[id] = d.data()||{};
+        }));
+
+        this.followUps = snap.docs.map(d => {
+          const data = d.data();
+          const inq  = inqMap[data.inquiryId]||{};
+          const due  = data.dueDate?.toDate ? data.dueDate.toDate() : null;
+          due && due.setHours(0,0,0,0);
+          return {
+            id: d.id,
+            inquiryId: data.inquiryId,
+            corp: inq.corp||'', office: inq.office||'', name: inq.name||'', email: inq.email||'',
+            dueDate: this.fmtDateShort(data.dueDate),
+            subject: data.subject, content: data.content, status: data.status, staff: data.staff,
+            isOverdue: due && due < today && data.status!=='完了',
+            isToday:   due && due.getTime()===today.getTime(),
+          };
+        });
+      } catch(e) { this.pageError = e.message; }
+      finally { this.loading = false; }
+    },
+
+    openAddFollowUp() {
+      const d = new Date(); d.setDate(d.getDate()+7);
+      this.newFu = { dueDate:d.toISOString().slice(0,10), subject:'', content:'' };
+      this.addFuOpen = true;
+    },
+
+    async saveFu() {
+      if(!this.newFu.dueDate||!this.newFu.subject.trim()) { this.showToast('日付と件名を入力してください','error'); return; }
+      await db.collection('followups').add({
+        inquiryId: this.inquiryDetail.id,
+        dueDate:   firebase.firestore.Timestamp.fromDate(new Date(this.newFu.dueDate)),
+        subject:   this.newFu.subject,
+        content:   this.newFu.content,
+        status:    '未対応',
+        staff:     this.currentUser.displayName,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      this.addFuOpen = false;
+      await this.openDetail(this.inquiryDetail.id);
+      this.showToast('フォローアップを追加しました');
+    },
+
+    async completeFu(id) {
+      await db.collection('followups').doc(id).update({
+        status: '完了', completedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      await this.loadFollowUps();
+      this.showToast('完了にしました');
+    },
+
+    // ── テンプレート ──────────────────────────────────
+    async getTemplates() {
+      const snap = await db.collection('templates').orderBy('order','asc').get();
+      if(snap.empty) {
+        // デフォルトを挿入
+        const defaults = [
+          { name:'受付自動返信', subject:'【株式会社２７９】お問い合わせを受け付けました', body:'{{名前}} 様\n\nお問い合わせありがとうございます。\n2営業日以内にご連絡いたします。\n\n株式会社２７９\nTEL: 050-1741-3279', order:1 },
+          { name:'現地訪問前確認', subject:'【株式会社２７９】ご訪問のご確認', body:'{{名前}} 様\n\n{{訪問日時}}にお伺いする予定です。\n\n株式会社２７９', order:2 },
+          { name:'導入後フォロー', subject:'【株式会社２７９】介護情報基盤 ご利用状況のご確認', body:'{{名前}} 様\n\nご導入後のご様子はいかがでしょうか？\n\n株式会社２７９', order:3 },
+        ];
+        await Promise.all(defaults.map(t => db.collection('templates').add(t)));
+        return defaults.map((t,i) => ({ id:`default-${i}`, ...t }));
+      }
+      return snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    },
+
+    editTemplate(tmpl) {
+      const name=prompt('テンプレート名',tmpl.name); if(!name) return;
+      const subject=prompt('件名',tmpl.subject)||'';
+      const body=prompt('本文',tmpl.body)||'';
+      db.collection('templates').doc(tmpl.id).set({ name, subject, body, order:tmpl.order||99 })
+        .then(() => { this.getTemplates().then(t => this.emailTemplates=t); this.showToast('保存しました'); });
+    },
+
+    newTemplate() {
+      const name=prompt('テンプレート名'); if(!name) return;
+      const subject=prompt('件名')||'';
+      const body=prompt('本文')||'';
+      db.collection('templates').add({ name, subject, body, order:99, createdAt:firebase.firestore.FieldValue.serverTimestamp() })
+        .then(() => { this.getTemplates().then(t => this.emailTemplates=t); this.showToast('テンプレートを追加しました'); });
+    },
+
+    // ── メール送信 ────────────────────────────────────
+    openEmailModal(inquiryId, to, subject, body) {
+      this.emailForm = { to, subject, body, inquiryId };
+      this.emailModalOpen = true;
+    },
+    applyTemplate(id) {
+      const t = this.emailTemplates.find(t=>t.id===id);
+      if(t) { this.emailForm.subject=t.subject; this.emailForm.body=t.body; }
+    },
+    async doSendEmail() {
+      if(!this.emailForm.to||!this.emailForm.subject) { this.showToast('宛先と件名を入力してください','error'); return; }
+      this.sending = true;
+      try {
+        const fn = fns.httpsCallable('sendEmail');
+        const r  = await fn({ to:this.emailForm.to, subject:this.emailForm.subject, body:this.emailForm.body, inquiryId:this.emailForm.inquiryId });
+        if(r.data?.error) throw new Error(r.data.error);
+        this.emailModalOpen = false;
+        if(this.inquiryDetail) await this.openDetail(this.inquiryDetail.id);
+        this.showToast('メールを送信しました');
+      } catch(e) { this.showToast(e.message,'error'); }
+      finally { this.sending = false; }
+    },
+
+    // ── LP 管理 ───────────────────────────────────────
+    async loadLPPage() {
+      this.lpLoading=true; this.lpDirty=false;
+      try {
+        const [newsR, wfR] = await Promise.all([
+          fns.httpsCallable('getLPNewsItems')(),
+          fns.httpsCallable('getWorkflowStatus')(),
+        ]);
+        this.lpItems    = newsR.data?.items||[];
+        this.lpWorkflow = { run: wfR.data?.run||null };
+      } catch(e) { this.showToast(e.message,'error'); this.lpItems=[]; }
+      finally { this.lpLoading=false; }
+    },
+    addLPItem()       { this.lpItems.push({date:'',source:'',title:'',url:''}); this.lpDirty=true; },
+    removeLPItem(i)   { this.lpItems.splice(i,1); this.lpDirty=true; },
+    moveLPItem(i,dir) { const to=i+dir; if(to<0||to>=this.lpItems.length) return; [this.lpItems[i],this.lpItems[to]]=[this.lpItems[to],this.lpItems[i]]; this.lpDirty=true; },
+
+    async publishLP() {
+      if(this.lpItems.some(i=>!i.url||!i.title)) { this.showToast('タイトルとURLが未入力の記事があります','error'); return; }
+      if(!confirm(`${this.lpItems.length}件の記事をLPに公開します。よろしいですか？`)) return;
+      this.lpPublishing=true;
+      try {
+        const r = await fns.httpsCallable('saveLPNewsItems')({ items:this.lpItems });
+        if(r.data?.error) throw new Error(r.data.error);
+        this.lpDirty=false; this.showToast('LPを公開しました。GitHub Pagesへの反映は約1分かかります。');
+      } catch(e) { this.showToast(e.message,'error'); }
+      finally { this.lpPublishing=false; }
+    },
+
+    async runAutoScrape() {
+      if(!confirm('ニュース自動収集を実行します。')) return;
+      this.lpScraping=true;
+      try {
+        const r = await fns.httpsCallable('triggerNewsUpdate')();
+        if(!r.data?.success) { this.showToast(`GitHub APIエラー (${r.data?.status})`,'error'); return; }
+        this.showToast('自動収集を開始しました（約1〜2分）');
+        setTimeout(async()=>{ const w=await fns.httpsCallable('getWorkflowStatus')(); this.lpWorkflow={run:w.data?.run||null}; },3000);
+      } catch(e) { this.showToast(e.message,'error'); }
+      finally { this.lpScraping=false; }
+    },
+
+    // ── ユーティリティ ────────────────────────────────
+    statusClass(s) {
+      return { '新規':'bg-blue-100 text-blue-700','対応中':'bg-yellow-100 text-yellow-700',
+               '現地訪問済':'bg-purple-100 text-purple-700','完了':'bg-green-100 text-green-700',
+               'フォロー中':'bg-orange-100 text-orange-700' }[s]||'bg-gray-100 text-gray-500';
+    },
+    fmtDate(val) {
+      if(!val) return '';
+      const d = val?.toDate ? val.toDate() : new Date(val);
+      if(isNaN(d)) return String(val);
+      return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    },
+    fmtDateShort(val) {
+      if(!val) return '';
+      const d = val?.toDate ? val.toDate() : new Date(val);
+      if(isNaN(d)) return String(val);
+      return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+    },
+    showToast(message, type='success') {
+      this.toast = { show:true, message, type };
+      setTimeout(()=>{ this.toast.show=false; }, 3000);
+    },
+  };
+}
+</script>
+</body>
+</html>
