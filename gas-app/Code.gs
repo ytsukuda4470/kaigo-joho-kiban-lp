@@ -26,7 +26,7 @@ const STATUSES = ['新規', '対応中', '現地訪問済', '完了', 'フォロ
 
 function doGet(e) {
   return HtmlService.createHtmlOutputFromFile('Index')
-    .setTitle('介護情報基盤 CRM')
+    .setTitle('介護基盤 管理ツール')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
@@ -551,4 +551,163 @@ function formatDateShort(val) {
     if (isNaN(d)) return String(val);
     return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
   } catch { return String(val); }
+}
+
+// ============================================================
+//  LP 管理 — GitHub API 連携
+//  スクリプトプロパティ: GITHUB_TOKEN (contents + workflow スコープの PAT)
+// ============================================================
+
+const GITHUB_OWNER = 'ytsukuda4470';
+const GITHUB_REPO  = 'kaigo-joho-kiban-lp';
+const LP_FILE_PATH = 'index.html';
+
+function _githubHeaders() {
+  const token = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN') || '';
+  if (!token) throw new Error('GITHUB_TOKEN が未設定です。スクリプトプロパティに登録してください。');
+  return {
+    Authorization: `Bearer ${token}`,
+    Accept: 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json',
+  };
+}
+
+/** index.html の生コンテンツと最新 SHA を取得 */
+function _getLPFile() {
+  const res = UrlFetchApp.fetch(
+    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${LP_FILE_PATH}`,
+    { headers: _githubHeaders(), muteHttpExceptions: true }
+  );
+  if (res.getResponseCode() !== 200) throw new Error('GitHub からファイルを取得できませんでした: ' + res.getContentText());
+  const data = JSON.parse(res.getContentText());
+  // Base64 デコード（GAS は Utilities.newBlob で処理）
+  const html = Utilities.newBlob(Utilities.base64Decode(data.content.replace(/\n/g, ''))).getDataAsString();
+  return { html, sha: data.sha };
+}
+
+/** NEWS_ITEMS_START〜END 間の <a> タグをパースしてリストを返す */
+function getLPNewsItems() {
+  try {
+    const { html, sha } = _getLPFile();
+    const blockMatch = html.match(/<!-- NEWS_ITEMS_START -->([\s\S]*?)<!-- NEWS_ITEMS_END -->/);
+    if (!blockMatch) return { items: [], sha, error: null };
+
+    const block = blockMatch[1];
+    const items = [];
+    const aRe = /<a\s[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g;
+    let m;
+    while ((m = aRe.exec(block)) !== null) {
+      const url   = m[1];
+      const inner = m[2];
+      const dateM   = inner.match(/text-gray-400[^>]*>([^<]+)<\/span>/);
+      const srcM    = inner.match(/text-primary[^>]*>([^<]+)<\/span>/);
+      const titleM  = inner.match(/<p[^>]*>\s*([\s\S]*?)\s*<\/p>/);
+      items.push({
+        url,
+        date:   dateM  ? dateM[1].trim()  : '',
+        source: srcM   ? srcM[1].trim()   : '',
+        title:  titleM ? titleM[1].trim().replace(/\s+/g, ' ') : '',
+      });
+    }
+    return { items, sha, error: null };
+  } catch (e) {
+    return { items: [], sha: '', error: e.message };
+  }
+}
+
+/** ニュースアイテムを HTML に変換 */
+function _articleHtml(art) {
+  const title = art.title.length > 60 ? art.title.slice(0, 60) + '…' : art.title;
+  return `                <a href="${art.url}" target="_blank" rel="noopener noreferrer"\n` +
+    `                   class="reveal flex gap-4 bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow border border-gray-100 group">\n` +
+    `                    <div class="flex-shrink-0 text-center">\n` +
+    `                        <span class="block text-xs text-gray-400">${art.date}</span>\n` +
+    `                        <span class="block text-xs font-bold text-primary">${art.source}</span>\n` +
+    `                    </div>\n` +
+    `                    <div class="flex-1 min-w-0">\n` +
+    `                        <p class="text-sm font-medium text-gray-800 group-hover:text-primary transition-colors line-clamp-2">\n` +
+    `                            ${title}\n` +
+    `                        </p>\n` +
+    `                        <span class="mt-1 inline-flex items-center text-xs text-primary/70">\n` +
+    `                            <i class="fas fa-external-link-alt mr-1 text-xs"></i>記事を読む\n` +
+    `                        </span>\n` +
+    `                    </div>\n` +
+    `                </a>`;
+}
+
+/** ニュースアイテムを保存して GitHub に commit */
+function saveLPNewsItems(items) {
+  try {
+    const { html, sha } = _getLPFile();
+    const newBlock =
+      '                <!-- NEWS_ITEMS_START -->\n' +
+      items.map(a => _articleHtml(a)).join('\n') +
+      '\n                <!-- NEWS_ITEMS_END -->';
+    const newHtml = html.replace(
+      /<!-- NEWS_ITEMS_START -->[\s\S]*?<!-- NEWS_ITEMS_END -->/,
+      newBlock
+    );
+    if (newHtml === html) return { success: false, error: 'マーカーが見つかりませんでした' };
+
+    const encoded = Utilities.base64Encode(Utilities.newBlob(newHtml).getBytes());
+    const now = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm');
+    const body = JSON.stringify({
+      message: `LP ニュース手動更新 ${now}`,
+      content: encoded,
+      sha,
+    });
+    const res = UrlFetchApp.fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${LP_FILE_PATH}`,
+      { method: 'put', headers: _githubHeaders(), payload: body, muteHttpExceptions: true }
+    );
+    if (res.getResponseCode() !== 200 && res.getResponseCode() !== 201) {
+      return { success: false, error: 'GitHub commit 失敗: ' + res.getContentText() };
+    }
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
+/** GitHub Actions ワークフローを手動トリガー */
+function triggerNewsUpdate() {
+  try {
+    const res = UrlFetchApp.fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/update-news.yml/dispatches`,
+      {
+        method: 'post',
+        headers: _githubHeaders(),
+        payload: JSON.stringify({ ref: 'main', inputs: { force_notify: 'true' } }),
+        muteHttpExceptions: true,
+      }
+    );
+    // 204 No Content = success
+    return { success: res.getResponseCode() === 204, status: res.getResponseCode() };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
+/** 最新の workflow 実行状況を取得 */
+function getWorkflowStatus() {
+  try {
+    const res = UrlFetchApp.fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/update-news.yml/runs?per_page=1`,
+      { headers: _githubHeaders(), muteHttpExceptions: true }
+    );
+    if (res.getResponseCode() !== 200) return { run: null };
+    const data = JSON.parse(res.getContentText());
+    const run = data.workflow_runs?.[0];
+    if (!run) return { run: null };
+    return {
+      run: {
+        status:     run.status,
+        conclusion: run.conclusion,
+        createdAt:  formatDate(run.created_at),
+        url:        run.html_url,
+      }
+    };
+  } catch (e) {
+    return { run: null, error: e.message };
+  }
 }

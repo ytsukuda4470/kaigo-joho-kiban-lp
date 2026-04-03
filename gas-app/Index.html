@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>介護情報基盤 CRM</title>
+<title>介護基盤 管理ツール</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   tailwind.config = {
@@ -60,7 +60,7 @@
         </div>
         <div>
           <div class="text-sm font-bold text-gray-900 leading-tight">株式会社２７９</div>
-          <div class="text-xs text-gray-400 leading-tight">介護情報基盤 CRM</div>
+          <div class="text-xs text-gray-400 leading-tight">介護基盤 管理ツール</div>
         </div>
       </div>
     </div>
@@ -405,6 +405,134 @@
         </div>
       </template>
 
+      <!-- ===== LP 管理 ===== -->
+      <template x-if="currentPage === 'lp'">
+        <div class="fade-in space-y-5">
+
+          <!-- ステータスバー -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-wrap items-center gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="text-xs text-gray-400 mb-1">GitHub Pages LP</div>
+              <a href="https://ytsukuda4470.github.io/kaigo-joho-kiban-lp/" target="_blank"
+                 class="text-sm font-medium text-primary hover:underline inline-flex items-center gap-1">
+                ytsukuda4470.github.io/kaigo-joho-kiban-lp
+                <i class="fas fa-arrow-up-right-from-square text-xs"></i>
+              </a>
+            </div>
+            <!-- ワークフロー最終実行 -->
+            <div class="text-center">
+              <div class="text-xs text-gray-400 mb-1">自動収集 最終実行</div>
+              <template x-if="lpWorkflow.run">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full flex-shrink-0"
+                        :class="lpWorkflow.run.conclusion === 'success' ? 'bg-green-400' :
+                                lpWorkflow.run.status === 'in_progress' ? 'bg-yellow-400 animate-pulse' : 'bg-red-400'"></span>
+                  <span class="text-xs text-gray-600" x-text="lpWorkflow.run.createdAt"></span>
+                  <a :href="lpWorkflow.run.url" target="_blank" class="text-xs text-primary hover:underline">ログ</a>
+                </div>
+              </template>
+              <template x-if="!lpWorkflow.run">
+                <span class="text-xs text-gray-400">取得中...</span>
+              </template>
+            </div>
+            <!-- 自動収集トリガー -->
+            <button @click="runAutoScrape()" :disabled="lpScraping"
+                    class="flex items-center gap-2 px-4 py-2.5 bg-warm/10 text-warm rounded-xl text-sm font-semibold hover:bg-warm/20 transition-colors disabled:opacity-50">
+              <i class="fas fa-robot" :class="lpScraping ? 'animate-spin' : ''"></i>
+              <span x-text="lpScraping ? '実行中...' : 'ニュース自動収集'"></span>
+            </button>
+            <!-- LP に公開 -->
+            <button @click="publishLP()" :disabled="lpPublishing || lpItems.length === 0"
+                    class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-sm">
+              <i class="fas fa-cloud-arrow-up" :class="lpPublishing ? 'animate-bounce' : ''"></i>
+              <span x-text="lpPublishing ? '公開中...' : 'LP に公開'"></span>
+            </button>
+          </div>
+
+          <!-- GITHUB_TOKEN 未設定の警告 -->
+          <template x-if="lpTokenMissing">
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 text-sm text-amber-800">
+              <i class="fas fa-triangle-exclamation mt-0.5 flex-shrink-0"></i>
+              <div>
+                <div class="font-semibold mb-1">GitHub トークンが未設定です</div>
+                GAS スクリプトプロパティに <code class="bg-amber-100 px-1 rounded">GITHUB_TOKEN</code> を登録してください。
+                <a href="https://github.com/settings/tokens/new?scopes=repo,workflow" target="_blank" class="underline ml-1">トークン作成</a>
+              </div>
+            </div>
+          </template>
+
+          <!-- ニュースアイテム編集テーブル -->
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div>
+                <h3 class="font-semibold text-gray-900">ニュース記事</h3>
+                <p class="text-xs text-gray-400 mt-0.5">編集後「LP に公開」で GitHub Pages に反映されます</p>
+              </div>
+              <button @click="addLPItem()"
+                      class="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium transition-colors">
+                <i class="fas fa-circle-plus text-primary"></i>記事を追加
+              </button>
+            </div>
+
+            <template x-if="lpLoading">
+              <div class="py-12 text-center text-gray-400 text-sm">
+                <i class="fas fa-spinner fa-spin text-2xl text-primary mb-3 block"></i>GitHub から取得中...
+              </div>
+            </template>
+
+            <template x-if="!lpLoading">
+              <div class="divide-y divide-gray-50">
+                <template x-for="(item, idx) in lpItems" :key="idx">
+                  <div class="px-5 py-4 flex gap-4 items-start hover:bg-gray-50/50 transition-colors group">
+                    <!-- 順序 -->
+                    <div class="flex-shrink-0 flex flex-col gap-1 pt-1">
+                      <button @click="moveLPItem(idx, -1)" :disabled="idx === 0"
+                              class="w-6 h-6 rounded-lg text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-20 flex items-center justify-center text-xs">
+                        <i class="fas fa-chevron-up"></i>
+                      </button>
+                      <button @click="moveLPItem(idx, 1)" :disabled="idx === lpItems.length - 1"
+                              class="w-6 h-6 rounded-lg text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-20 flex items-center justify-center text-xs">
+                        <i class="fas fa-chevron-down"></i>
+                      </button>
+                    </div>
+                    <!-- フィールド -->
+                    <div class="flex-1 grid grid-cols-12 gap-2">
+                      <input x-model="item.date" @input="lpDirty=true" placeholder="2026/04"
+                             class="col-span-2 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20">
+                      <input x-model="item.source" @input="lpDirty=true" placeholder="媒体名"
+                             class="col-span-2 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20">
+                      <input x-model="item.title" @input="lpDirty=true" placeholder="記事タイトル"
+                             class="col-span-5 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20">
+                      <input x-model="item.url" @input="lpDirty=true" placeholder="https://..."
+                             class="col-span-3 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20">
+                    </div>
+                    <!-- 削除 -->
+                    <button @click="removeLPItem(idx)"
+                            class="flex-shrink-0 w-7 h-7 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 mt-0.5">
+                      <i class="fas fa-trash text-xs"></i>
+                    </button>
+                  </div>
+                </template>
+                <template x-if="lpItems.length === 0 && !lpLoading">
+                  <div class="py-10 text-center text-gray-400 text-sm">
+                    記事がありません。「記事を追加」から追加してください。
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+
+          <!-- 変更フラグ -->
+          <template x-if="lpDirty">
+            <div class="text-xs text-amber-600 text-center flex items-center justify-center gap-1.5">
+              <i class="fas fa-circle-dot animate-pulse"></i>
+              未保存の変更があります。「LP に公開」で GitHub Pages に反映してください。
+            </div>
+          </template>
+
+        </div>
+      </template>
+
     </main>
   </div>
 </div>
@@ -670,6 +798,7 @@ function app() {
       { id: 'inquiries',  label: '問い合わせ一覧',     icon: 'fas fa-table-list',     badge: null },
       { id: 'followups',  label: 'フォローアップ',     icon: 'fas fa-bell',           badge: 'overdue' },
       { id: 'templates',  label: 'メールテンプレート', icon: 'fas fa-pen-to-square',  badge: null },
+      { id: 'lp',         label: 'LP 管理',           icon: 'fas fa-globe',          badge: null },
     ],
 
     // ダッシュボード
@@ -693,6 +822,15 @@ function app() {
 
     // メールテンプレート
     emailTemplates: [],
+
+    // LP 管理
+    lpItems: [],
+    lpLoading: false,
+    lpDirty: false,
+    lpPublishing: false,
+    lpScraping: false,
+    lpWorkflow: { run: null },
+    lpTokenMissing: false,
 
     // モーダル
     addActionOpen: false,
@@ -731,6 +869,7 @@ function app() {
       else if (pageId === 'inquiries') await this.loadInquiries();
       else if (pageId === 'followups') await this.loadFollowUps();
       else if (pageId === 'templates') await this.loadTemplates();
+      else if (pageId === 'lp') await this.loadLPPage();
     },
 
     async refreshPage() {
@@ -887,6 +1026,81 @@ function app() {
       this.call('saveEmailTemplate', null, name, subject, body).then(() => {
         this.loadTemplates(); this.showToast('テンプレートを追加しました');
       });
+    },
+
+    // ── LP 管理 ──────────────────────────────────
+    async loadLPPage() {
+      this.lpLoading = true;
+      this.lpTokenMissing = false;
+      this.lpDirty = false;
+      try {
+        const [newsRes, wfRes] = await Promise.all([
+          this.call('getLPNewsItems'),
+          this.call('getWorkflowStatus'),
+        ]);
+        if (newsRes?.error) {
+          if (newsRes.error.includes('GITHUB_TOKEN')) this.lpTokenMissing = true;
+          else this.showToast(newsRes.error, 'error');
+          this.lpItems = [];
+        } else {
+          this.lpItems = newsRes.items || [];
+        }
+        this.lpWorkflow = wfRes || { run: null };
+      } finally {
+        this.lpLoading = false;
+      }
+    },
+
+    addLPItem() {
+      this.lpItems.push({ date: '', source: '', title: '', url: '' });
+      this.lpDirty = true;
+    },
+
+    removeLPItem(idx) {
+      this.lpItems.splice(idx, 1);
+      this.lpDirty = true;
+    },
+
+    moveLPItem(idx, dir) {
+      const to = idx + dir;
+      if (to < 0 || to >= this.lpItems.length) return;
+      [this.lpItems[idx], this.lpItems[to]] = [this.lpItems[to], this.lpItems[idx]];
+      this.lpDirty = true;
+    },
+
+    async publishLP() {
+      const invalid = this.lpItems.filter(i => !i.url || !i.title);
+      if (invalid.length > 0) {
+        this.showToast('タイトルと URL が未入力の記事があります', 'error'); return;
+      }
+      if (!confirm(`${this.lpItems.length} 件の記事を LP に公開します。よろしいですか？`)) return;
+      this.lpPublishing = true;
+      try {
+        const r = await this.call('saveLPNewsItems', this.lpItems);
+        if (r?.error) { this.showToast(r.error, 'error'); return; }
+        this.lpDirty = false;
+        this.showToast('LP を公開しました。GitHub Pages への反映は約1分かかります。');
+      } finally {
+        this.lpPublishing = false;
+      }
+    },
+
+    async runAutoScrape() {
+      if (!confirm('ニュース自動収集を実行します。完了後に Google Chat へ通知されます。')) return;
+      this.lpScraping = true;
+      try {
+        const r = await this.call('triggerNewsUpdate');
+        if (r?.error || !r?.success) {
+          this.showToast(r?.error || `GitHub API エラー (${r?.status})`, 'error'); return;
+        }
+        this.showToast('自動収集を開始しました。完了まで約1〜2分かかります。');
+        // 3秒後にワークフロー状態を再取得
+        setTimeout(async () => {
+          this.lpWorkflow = await this.call('getWorkflowStatus');
+        }, 3000);
+      } finally {
+        this.lpScraping = false;
+      }
     },
 
     // ── 初期設定 ──────────────────────────────────

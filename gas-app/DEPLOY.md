@@ -39,7 +39,19 @@
    - 問い合わせシートに追加列（対応状況・担当者・メモ等）を自動追加
    - 対応履歴・フォローアップ・メールテンプレートシートを自動作成
 
-## 6. Google Chat Webhook 設定
+## 6. GitHub Token 設定（LP 管理機能に必要）
+
+「LP 管理」ページから記事の編集・公開・自動収集トリガーを使うには GitHub PAT が必要です。
+
+1. https://github.com/settings/tokens/new にアクセス
+2. スコープ: `repo` ✅ と `workflow` ✅ にチェック
+3. 生成したトークンを GAS スクリプトプロパティに登録:
+
+| プロパティ名 | 値 |
+|---|---|
+| `GITHUB_TOKEN` | `ghp_xxxxxx...` |
+
+## 7. Google Chat Webhook 設定
 
 GASスクリプト内の既存Webhookはそのまま使用。
 新規通知はCRMアプリのメール送信機能から直接送信できます。
