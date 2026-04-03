@@ -783,6 +783,90 @@
      JavaScript
 ====================================================== -->
 <script>
+// ── ローカルプレビュー用モック（GAS 環境では上書きされる） ──
+if (typeof google === 'undefined') {
+  const MOCK = {
+    getCurrentUser: () => ({ email: 'taro.yamada@279.co.jp', displayName: '山田 太郎', givenName: '太郎', familyName: '山田', picture: '' }),
+    getDashboardStats: () => ({
+      total: 42, todayNew: 3, weekNew: 11, overdueFu: 2,
+      statusCounts: { '新規': 12, '対応中': 8, '現地訪問済': 5, '完了': 14, 'フォロー中': 3 },
+      recent: [
+        { id: 2, timestamp: '2026/04/03 10:21', corp: '医療法人 桜会', office: '桜ケアセンター', status: '対応中', name: '鈴木 花子' },
+        { id: 3, timestamp: '2026/04/02 15:44', corp: '株式会社 緑風', office: 'グリーン訪問介護', status: '新規', name: '田中 一郎' },
+        { id: 4, timestamp: '2026/04/02 09:10', corp: '社会福祉法人 希望', office: 'のぞみデイサービス', status: '完了', name: '佐藤 幸子' },
+        { id: 5, timestamp: '2026/04/01 14:30', corp: '有限会社 あおぞら', office: 'あおぞら居宅介護', status: 'フォロー中', name: '高橋 誠' },
+        { id: 6, timestamp: '2026/03/31 11:05', corp: '医療法人 大樹', office: '大樹訪問看護', status: '現地訪問済', name: '伊藤 明美' },
+      ]
+    }),
+    getInquiries: () => ([
+      { id: 2, timestamp: '2026/04/03 10:21', corp: '医療法人 桜会', office: '桜ケアセンター', prefecture: '神奈川県', name: '鈴木 花子', email: 'hanako@sakura.jp', phone: '045-xxx-xxxx', status: '対応中', assignee: '山田', lastUpdated: '2026/04/03', interest: '' },
+      { id: 3, timestamp: '2026/04/02 15:44', corp: '株式会社 緑風', office: 'グリーン訪問介護', prefecture: '北海道', name: '田中 一郎', email: 'ichiro@ryokufu.jp', phone: '011-xxx-xxxx', status: '新規', assignee: '', lastUpdated: '', interest: '' },
+      { id: 4, timestamp: '2026/04/02 09:10', corp: '社会福祉法人 希望', office: 'のぞみデイサービス', prefecture: '京都府', name: '佐藤 幸子', email: 'sachiko@nozomi.jp', phone: '075-xxx-xxxx', status: '完了', assignee: '山田', lastUpdated: '2026/04/02', interest: '' },
+      { id: 5, timestamp: '2026/04/01 14:30', corp: '有限会社 あおぞら', office: 'あおぞら居宅介護', prefecture: '福島県', name: '高橋 誠', email: 'makoto@aozora.jp', phone: '024-xxx-xxxx', status: 'フォロー中', assignee: '山田', lastUpdated: '2026/04/01', interest: '' },
+      { id: 6, timestamp: '2026/03/31 11:05', corp: '医療法人 大樹', office: '大樹訪問看護', prefecture: '茨城県', name: '伊藤 明美', email: 'akemi@taiki.jp', phone: '029-xxx-xxxx', status: '現地訪問済', assignee: '山田', lastUpdated: '2026/03/31', interest: '' },
+    ]),
+    getInquiryDetail: (id) => ({
+      id, timestamp: '2026/04/03 10:21', corp: '医療法人 桜会', office: '桜ケアセンター',
+      zip: '220-0001', prefecture: '神奈川県', phone: '045-111-2222', name: '鈴木 花子',
+      role: '事務長', email: 'hanako@sakura.jp', officeCount: '3事業所', careplanLinkage: 'あり',
+      densou: 'e-Trans', interest: '導入費用・助成金', message: 'カードリーダーの選び方と導入スケジュールを相談したい。',
+      status: '対応中', assignee: '山田 太郎', lastUpdated: '2026/04/03 11:00', notes: '4/5に訪問予定',
+      actions: [
+        { id: 1, date: '2026/04/03 10:30', type: '電話', content: '初回ヒアリング実施。要件確認済み。', staff: '山田' },
+        { id: 2, date: '2026/04/03 11:00', type: 'メール送信', content: '件名: 受付確認\n\nお問い合わせありがとうございます。', staff: '山田' },
+      ],
+      followups: [
+        { id: 1, dueDate: '2026/04/05', subject: '現地訪問', content: '10:00〜 桜ケアセンター訪問', status: '未対応' },
+        { id: 2, dueDate: '2026/04/12', subject: '導入後フォロー', content: '動作確認メール送信', status: '未対応' },
+      ]
+    }),
+    getFollowUps: () => ([
+      { id: 1, rowNum: 2, inquiryId: 2, corp: '医療法人 桜会', office: '桜ケアセンター', name: '鈴木 花子', email: 'hanako@sakura.jp', dueDate: '2026/04/03', subject: '現地訪問', content: '10:00〜 桜ケアセンター訪問', status: '未対応', staff: '山田', isOverdue: false, isToday: true },
+      { id: 2, rowNum: 3, inquiryId: 5, corp: '有限会社 あおぞら', office: 'あおぞら居宅介護', name: '高橋 誠', email: 'makoto@aozora.jp', dueDate: '2026/03/28', subject: '導入後フォロー', content: '動作確認・困りごとヒアリング', status: '未対応', staff: '山田', isOverdue: true, isToday: false },
+    ]),
+    getEmailTemplates: () => ([
+      { id: '1', name: '受付自動返信', subject: '【株式会社２７９】お問い合わせを受け付けました', body: '{{名前}} 様\n\nお問い合わせいただきありがとうございます。\n2営業日以内にご連絡いたします。\n\n株式会社２７９' },
+      { id: '2', name: '現地訪問前確認', subject: '【株式会社２７９】ご訪問のご確認', body: '{{名前}} 様\n\n{{訪問日時}}にお伺いする予定です。\n\n株式会社２７９' },
+      { id: '3', name: '導入後フォロー', subject: '【株式会社２７９】介護情報基盤 ご利用状況のご確認', body: '{{名前}} 様\n\nご導入後のご様子はいかがでしょうか？\n\n株式会社２７９' },
+    ]),
+    getLPNewsItems: () => ({
+      items: [
+        { date: '2026/03', source: 'GemMed', title: '介護情報基盤 2026年4月1日より稼働開始——マイナンバーカードで介護情報を一元管理', url: 'https://gemmed.ghc-j.com/?p=65763' },
+        { date: '2025/12', source: '厚生労働省', title: '介護情報基盤について（厚生労働省 公式ページ）——制度概要・自治体向け情報', url: 'https://www.mhlw.go.jp/stf/newpage_59231.html' },
+        { date: '2024/11', source: 'Joint', title: '新たな「介護情報基盤」、2026年4月開始目指す——ケアプラン連携・認定情報を共有', url: 'https://www.joint-kaigo.com/articles/28421/' },
+        { date: '2024/10', source: '介護経営', title: '介護情報基盤26年4月の一斉開始は困難か——段階的移行の可能性を解説', url: 'https://kaigokeiei.com/news/einqb2ouij/' },
+      ], sha: 'mock', error: null
+    }),
+    getWorkflowStatus: () => ({ run: { status: 'completed', conclusion: 'success', createdAt: '2026/04/03 08:00', url: '#' } }),
+    updateInquiry: () => ({ success: true }),
+    addAction: () => ({ success: true }),
+    addFollowUp: () => ({ success: true }),
+    completeFollowUp: () => ({ success: true }),
+    sendEmail: () => ({ success: true }),
+    saveEmailTemplate: () => ({ success: true }),
+    saveLPNewsItems: () => ({ success: true }),
+    triggerNewsUpdate: () => ({ success: true }),
+    setupSheets: () => ({ success: true, message: '（モック）初期設定完了' }),
+  };
+  window.google = {
+    script: {
+      run: {
+        withSuccessHandler(cb) {
+          return {
+            withFailureHandler(_) {
+              return new Proxy({}, {
+                get(__, fn) {
+                  return (...args) => setTimeout(() => cb(MOCK[fn] ? MOCK[fn](...args) : {}), 250);
+                }
+              });
+            }
+          };
+        }
+      }
+    }
+  };
+}
+
 function app() {
   return {
     // ── 状態 ──────────────────────────────────────

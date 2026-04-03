@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "lp-server",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8090"],
+      "port": 8090
+    },
+    {
+      "name": "crm-server",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8091", "--directory", "gas-app"],
+      "port": 8091
+    }
+  ]
+}
