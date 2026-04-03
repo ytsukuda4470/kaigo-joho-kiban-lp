@@ -31,19 +31,31 @@ function doGet(e) {
 }
 
 // ============================================================
-//  ユーザー情報
+//  ユーザー情報（Google userinfo API）
 // ============================================================
 
 function getCurrentUser() {
   try {
-    const user = Session.getActiveUser();
-    const email = user.getEmail();
-    return {
-      email: email,
-      displayName: email.split('@')[0].replace(/\./g, ' '),
-    };
+    const token = ScriptApp.getOAuthToken();
+    const res = UrlFetchApp.fetch(
+      'https://www.googleapis.com/oauth2/v2/userinfo',
+      { headers: { Authorization: 'Bearer ' + token }, muteHttpExceptions: true }
+    );
+    if (res.getResponseCode() === 200) {
+      const info = JSON.parse(res.getContentText());
+      return {
+        email:       info.email       || '',
+        displayName: info.name        || info.email.split('@')[0],
+        givenName:   info.given_name  || '',
+        familyName:  info.family_name || '',
+        picture:     info.picture     || '',
+      };
+    }
+    // fallback
+    const email = Session.getActiveUser().getEmail();
+    return { email, displayName: email.split('@')[0], picture: '' };
   } catch (e) {
-    return { email: 'unknown', displayName: 'ゲスト' };
+    return { email: '', displayName: 'ゲスト', picture: '' };
   }
 }
 

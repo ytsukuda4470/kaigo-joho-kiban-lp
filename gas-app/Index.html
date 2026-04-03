@@ -89,17 +89,6 @@
       </template>
     </nav>
 
-    <!-- ユーザー情報 -->
-    <div class="px-4 py-3 border-t border-gray-100">
-      <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors cursor-default">
-        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-             x-text="currentUser.displayName ? currentUser.displayName[0].toUpperCase() : '?'"></div>
-        <div class="min-w-0">
-          <div class="text-sm font-semibold text-gray-800 truncate" x-text="currentUser.displayName || 'Loading...'"></div>
-          <div class="text-xs text-gray-400 truncate" x-text="currentUser.email || ''"></div>
-        </div>
-      </div>
-    </div>
   </aside>
 
   <!-- =====================
@@ -114,7 +103,7 @@
         <p class="text-xs text-gray-400 mt-0.5" x-text="lastRefreshed ? '最終更新: ' + lastRefreshed : ''"></p>
       </div>
       <div class="flex items-center gap-3">
-        <button @click="refreshPage()" class="text-gray-400 hover:text-primary transition-colors text-sm">
+        <button @click="refreshPage()" class="text-gray-400 hover:text-primary transition-colors text-sm p-2 rounded-lg hover:bg-gray-100">
           <i class="fas fa-rotate" :class="loading ? 'animate-spin' : ''"></i>
         </button>
         <template x-if="currentPage === 'inquiries' || currentPage === 'dashboard'">
@@ -123,6 +112,51 @@
             <i class="fas fa-sliders mr-1"></i>初期設定
           </button>
         </template>
+
+        <!-- Google スタイル ユーザーメニュー -->
+        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+          <button @click="open = !open"
+                  class="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full hover:bg-gray-100 transition-colors">
+            <!-- アバター -->
+            <template x-if="currentUser.picture">
+              <img :src="currentUser.picture" :alt="currentUser.displayName"
+                   class="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-sm">
+            </template>
+            <template x-if="!currentUser.picture">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center text-white text-sm font-bold ring-2 ring-white shadow-sm"
+                   x-text="currentUser.displayName ? currentUser.displayName[0].toUpperCase() : '?'"></div>
+            </template>
+            <i class="fas fa-chevron-down text-gray-400 text-xs transition-transform" :class="open ? 'rotate-180' : ''"></i>
+          </button>
+
+          <!-- ドロップダウン -->
+          <template x-if="open">
+            <div class="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden fade-in">
+              <!-- ヘッダー部分 (Googleカード風) -->
+              <div class="px-5 py-5 bg-gradient-to-b from-blue-50 to-white border-b border-gray-100 text-center">
+                <template x-if="currentUser.picture">
+                  <img :src="currentUser.picture" :alt="currentUser.displayName"
+                       class="w-16 h-16 rounded-full object-cover mx-auto mb-3 ring-4 ring-white shadow-md">
+                </template>
+                <template x-if="!currentUser.picture">
+                  <div class="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center text-white text-2xl font-bold mx-auto mb-3 ring-4 ring-white shadow-md"
+                       x-text="currentUser.displayName ? currentUser.displayName[0].toUpperCase() : '?'"></div>
+                </template>
+                <div class="font-semibold text-gray-900 text-sm" x-text="currentUser.displayName"></div>
+                <div class="text-xs text-gray-500 mt-0.5" x-text="currentUser.email"></div>
+              </div>
+              <!-- Googleアカウント管理リンク -->
+              <div class="px-4 py-3">
+                <a href="https://myaccount.google.com" target="_blank"
+                   class="flex items-center justify-center gap-2 w-full py-2 px-4 text-sm text-gray-600 border border-gray-200 rounded-full hover:bg-gray-50 transition-colors">
+                  <img src="https://www.gstatic.com/images/branding/googleg/1x/googleg_standard_color_28dp.png"
+                       class="w-4 h-4" alt="Google">
+                  Google アカウントを管理
+                </a>
+              </div>
+            </div>
+          </template>
+        </div>
       </div>
     </header>
 
