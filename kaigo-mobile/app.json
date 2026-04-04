@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "kaigo-mobile",
+    "name": "介護情報基盤",
     "slug": "kaigo-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,21 +10,41 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#f8f6f0"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "net.279279.kaigo.mobile",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
+      "package": "net.n279279.kaigo.mobile",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#1a365d"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "問い合わせ対応記録に写真を添付するために使用します。",
+          "cameraPermission": "現地訪問の記録写真を撮影するために使用します。"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "kaigo-mobile"
+      }
     }
   }
 }

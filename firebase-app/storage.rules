@@ -1,0 +1,15 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // 問い合わせ対応写真: 認証済みの 279279.net ドメインユーザーのみ読み書き可
+    match /inquiry-photos/{inquiryId}/{fileName} {
+      allow read, write: if request.auth != null
+                         && request.auth.token.email.matches('.*@279279\\.net');
+      // ファイルサイズ上限: 10MB、画像ファイルのみ
+      allow write: if request.auth != null
+                   && request.auth.token.email.matches('.*@279279\\.net')
+                   && request.resource.size < 10 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+  }
+}

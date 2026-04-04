@@ -3,6 +3,9 @@
     "rules": "firebase-app/firestore.rules",
     "indexes": "firebase-app/firestore.indexes.json"
   },
+  "storage": {
+    "rules": "firebase-app/storage.rules"
+  },
   "functions": [
     {
       "source": "firebase-app/functions",
