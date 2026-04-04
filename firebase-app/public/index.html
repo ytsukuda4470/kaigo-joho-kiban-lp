@@ -837,8 +837,12 @@ function app() {
       this.loading = true;
       const today = new Date(); today.setHours(0,0,0,0);
       try {
-        let q = db.collection('followups').orderBy('dueDate','asc');
-        if(this.fuFilter==='pending') q = q.where('status','!=','完了');
+        let q = db.collection('followups');
+        if (this.fuFilter === 'pending') {
+          q = q.where('status','!=','完了').orderBy('status','asc').orderBy('dueDate','asc');
+        } else {
+          q = q.orderBy('dueDate','asc');
+        }
         const snap = await q.get();
 
         const inqIds = [...new Set(snap.docs.map(d=>d.data().inquiryId))];

@@ -1,6 +1,9 @@
 # Firebase config (secrets - do not commit)
 firebase-app/public/firebase-config.js
 
+# Firebase CLI cache
+.firebase/
+
 # Firebase debug logs
 firebase-debug.log
 firebase-debug.*.log
