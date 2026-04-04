@@ -7,7 +7,6 @@ const { initializeApp }      = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const fetch      = require('node-fetch');
 const cheerio    = require('cheerio');
-const nodemailer = require('nodemailer');
 
 initializeApp();
 const db = getFirestore();
@@ -17,15 +16,14 @@ const GITHUB_OWNER   = 'ytsukuda4470';
 const GITHUB_REPO    = 'kaigo-joho-kiban-lp';
 const KEYWORD        = '介護情報基盤';
 
+// GAS ウェブアプリ URL（メール送信・フォーム受付）
+const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw51c7_q9NbC7Hn6ojfaUF9ytGq2FwM9MKttvnlVuId-XP9zzdJ-zUY71O4onb4BdFU/exec';
+
 // ── シークレット定義 ──────────────────────────────────────
 // firebase functions:secrets:set GCHAT_WEBHOOK_URL
 // firebase functions:secrets:set GITHUB_TOKEN
-// firebase functions:secrets:set GMAIL_USER          (例: info@279279.net)
-// firebase functions:secrets:set GMAIL_APP_PASSWORD  (Googleアカウントのアプリパスワード)
 const GCHAT_WEBHOOK_URL = defineSecret('GCHAT_WEBHOOK_URL');
 const GITHUB_TOKEN      = defineSecret('GITHUB_TOKEN');
-const GMAIL_USER        = defineSecret('GMAIL_USER');
-const GMAIL_APP_PASSWORD = defineSecret('GMAIL_APP_PASSWORD');
 
 // ── ユーティリティ ────────────────────────────────────────
 
@@ -34,34 +32,24 @@ function requireAuth(request) {
 }
 
 // ── メール送信 ────────────────────────────────────────────
-// GMAIL_USER / GMAIL_APP_PASSWORD を firebase functions:secrets:set で設定してください。
-// kiban@279279.net はグループメールのため Reply-To に設定し、送信元は GMAIL_USER を使用します。
+// GAS ウェブアプリ（GmailApp）経由でメールを送信します。
+// GMAIL_USER / GMAIL_APP_PASSWORD は不要になりました。
 
 exports.sendEmail = onCall(
-  { region: REGION, secrets: [GMAIL_USER, GMAIL_APP_PASSWORD] },
+  { region: REGION },
   async (request) => {
     requireAuth(request);
     const { to, subject, body, inquiryId } = request.data;
     if (!to || !subject) throw new HttpsError('invalid-argument', '宛先と件名は必須です');
 
-    const gmailUser = GMAIL_USER.value();
-    const gmailPass = GMAIL_APP_PASSWORD.value();
-    if (!gmailUser || !gmailPass) {
-      throw new HttpsError('failed-precondition', 'GMAIL_USER / GMAIL_APP_PASSWORD が未設定です');
-    }
-
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user: gmailUser, pass: gmailPass },
+    const res = await fetch(GAS_WEBAPP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'sendEmail', to, subject, body: body || '' }),
     });
-
-    await transporter.sendMail({
-      from:    `"株式会社２７９" <${gmailUser}>`,
-      replyTo: 'kiban@279279.net',
-      to,
-      subject,
-      text: body || '',
-    });
+    if (!res.ok) throw new HttpsError('internal', `GAS endpoint error: ${res.status}`);
+    const result = await res.json().catch(() => ({}));
+    if (result.success === false) throw new HttpsError('internal', result.error || 'メール送信に失敗しました');
 
     // 対応記録に保存
     if (inquiryId) {

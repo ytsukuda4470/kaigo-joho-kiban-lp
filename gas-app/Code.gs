@@ -40,10 +40,23 @@ function doGet(e) {
 
 function doPost(e) {
   try {
+    const payload = parsePostPayload(e);
+
+    // メール送信アクション（管理画面・Firebase Functions から呼び出し）
+    if (payload.action === 'sendEmail') {
+      if (!payload.to || !payload.subject) {
+        return jsonResponse({ success: false, error: '宛先と件名は必須です' });
+      }
+      GmailApp.sendEmail(payload.to, payload.subject, payload.body || '', {
+        name: '株式会社２７９',
+        replyTo: 'kiban@279279.net',
+      });
+      return jsonResponse({ success: true });
+    }
+
     const ss = getSpreadsheet();
     const inqSh = ensureInquirySheet(ss);
     const headers = inqSh.getRange(1, 1, 1, inqSh.getLastColumn()).getValues()[0];
-    const payload = parsePostPayload(e);
     const now = new Date();
 
     const rowMap = {
