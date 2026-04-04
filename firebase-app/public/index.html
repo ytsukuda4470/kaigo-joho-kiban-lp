@@ -361,66 +361,180 @@ const fns  = firebase.app().functions('asia-northeast1');
       <!-- LP 管理 -->
       <template x-if="currentPage==='lp'">
         <div class="fade-in space-y-5">
-          <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-wrap items-center gap-4">
-            <div class="flex-1 min-w-0">
-              <div class="text-xs text-gray-400 mb-1">LP（Firebase Hosting）</div>
-              <a href="https://kaigo-lp-279.web.app" target="_blank" class="text-sm font-medium text-primary hover:underline inline-flex items-center gap-1">
-                kaigo-lp-279.web.app <i class="fas fa-arrow-up-right-from-square text-xs"></i>
-              </a>
-            </div>
-            <div class="text-center">
-              <div class="text-xs text-gray-400 mb-1">自動収集 最終実行</div>
-              <template x-if="lpWorkflow.run">
-                <div class="flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full" :class="lpWorkflow.run.conclusion==='success'?'bg-green-400':lpWorkflow.run.status==='in_progress'?'bg-yellow-400 animate-pulse':'bg-red-400'"></span>
-                  <span class="text-xs text-gray-600" x-text="lpWorkflow.run.createdAt"></span>
-                  <a :href="lpWorkflow.run.url" target="_blank" class="text-xs text-primary hover:underline">ログ</a>
-                </div>
-              </template>
-            </div>
-            <button @click="runAutoScrape()" :disabled="lpScraping" class="flex items-center gap-2 px-4 py-2.5 bg-warm/10 text-warm rounded-xl text-sm font-semibold hover:bg-warm/20 transition-colors disabled:opacity-50">
-              <i class="fas fa-robot" :class="lpScraping?'animate-spin':''"></i>
-              <span x-text="lpScraping?'実行中...':'ニュース自動収集'"></span>
+
+          <!-- タブ -->
+          <div class="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+            <button @click="lpTab='preview'" :class="lpTab==='preview'?'bg-white shadow-sm text-gray-900 font-semibold':'text-gray-500 hover:text-gray-700'" class="px-4 py-1.5 rounded-lg text-sm transition-all">
+              <i class="fas fa-eye mr-1.5"></i>LP確認
             </button>
-            <button @click="publishLP()" :disabled="lpPublishing||lpItems.length===0" class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-sm">
-              <i class="fas fa-cloud-arrow-up" :class="lpPublishing?'animate-bounce':''"></i>
-              <span x-text="lpPublishing?'公開中...':'LP に公開'"></span>
+            <button @click="lpTab='news'" :class="lpTab==='news'?'bg-white shadow-sm text-gray-900 font-semibold':'text-gray-500 hover:text-gray-700'" class="px-4 py-1.5 rounded-lg text-sm transition-all">
+              <i class="fas fa-newspaper mr-1.5"></i>ニュース管理
+            </button>
+            <button @click="lpTab='history'; loadLPHistory()" :class="lpTab==='history'?'bg-white shadow-sm text-gray-900 font-semibold':'text-gray-500 hover:text-gray-700'" class="px-4 py-1.5 rounded-lg text-sm transition-all">
+              <i class="fas fa-clock-rotate-left mr-1.5"></i>改訂履歴
             </button>
           </div>
 
-          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <div><h3 class="font-semibold text-gray-900">ニュース記事</h3><p class="text-xs text-gray-400 mt-0.5">編集後「LP に公開」で Firebase Hosting に反映されます（約1分）</p></div>
-              <button @click="addLPItem()" class="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium transition-colors">
-                <i class="fas fa-circle-plus text-primary"></i>記事を追加
-              </button>
+          <!-- LP確認タブ -->
+          <template x-if="lpTab==='preview'">
+            <div class="space-y-4">
+              <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <div class="text-xs text-gray-400 mb-1">公開中のLP</div>
+                    <a href="https://kaigo-lp-279.web.app" target="_blank"
+                       class="text-base font-semibold text-primary hover:underline inline-flex items-center gap-1.5">
+                      kaigo-lp-279.web.app
+                      <i class="fas fa-arrow-up-right-from-square text-xs"></i>
+                    </a>
+                  </div>
+                  <div class="flex gap-3">
+                    <a href="https://kaigo-lp-279.web.app" target="_blank"
+                       class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm">
+                      <i class="fas fa-globe"></i>LPを開く
+                    </a>
+                    <button @click="lpTab='news'"
+                            class="flex items-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors">
+                      <i class="fas fa-pen-to-square"></i>ニュースを編集
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- LP プレビュー iframe -->
+              <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-gray-50">
+                  <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                    <span class="text-xs text-gray-400 ml-2">kaigo-lp-279.web.app</span>
+                  </div>
+                  <button @click="document.getElementById('lp-iframe').src=document.getElementById('lp-iframe').src"
+                          class="text-xs text-gray-400 hover:text-primary">
+                    <i class="fas fa-rotate"></i>
+                  </button>
+                </div>
+                <iframe id="lp-iframe" src="https://kaigo-lp-279.web.app"
+                        class="w-full border-0" style="height:600px;"
+                        title="LP プレビュー"></iframe>
+              </div>
             </div>
-            <template x-if="lpLoading"><div class="py-12 text-center text-gray-400 text-sm"><i class="fas fa-spinner fa-spin text-2xl text-primary mb-3 block"></i>読み込み中...</div></template>
-            <template x-if="!lpLoading">
-              <div class="divide-y divide-gray-50">
-                <template x-for="(item, idx) in lpItems" :key="idx">
-                  <div class="px-5 py-4 flex gap-4 items-start hover:bg-gray-50/50 group">
-                    <div class="flex-shrink-0 flex flex-col gap-1 pt-1">
-                      <button @click="moveLPItem(idx,-1)" :disabled="idx===0" class="w-6 h-6 rounded-lg text-gray-300 hover:text-gray-500 hover:bg-gray-100 disabled:opacity-20 flex items-center justify-center text-xs"><i class="fas fa-chevron-up"></i></button>
-                      <button @click="moveLPItem(idx,1)"  :disabled="idx===lpItems.length-1" class="w-6 h-6 rounded-lg text-gray-300 hover:text-gray-500 hover:bg-gray-100 disabled:opacity-20 flex items-center justify-center text-xs"><i class="fas fa-chevron-down"></i></button>
+          </template>
+
+          <!-- ニュース管理タブ -->
+          <template x-if="lpTab==='news'">
+            <div class="space-y-4">
+              <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-wrap items-center gap-4">
+                <div class="flex-1 min-w-0">
+                  <div class="text-xs text-gray-400 mb-1">自動収集 最終実行</div>
+                  <template x-if="lpWorkflow.run">
+                    <div class="flex items-center gap-2">
+                      <span class="w-2 h-2 rounded-full" :class="lpWorkflow.run.conclusion==='success'?'bg-green-400':lpWorkflow.run.status==='in_progress'?'bg-yellow-400 animate-pulse':'bg-red-400'"></span>
+                      <span class="text-xs text-gray-600" x-text="lpWorkflow.run.createdAt"></span>
+                      <a :href="lpWorkflow.run.url" target="_blank" class="text-xs text-primary hover:underline">ログ</a>
                     </div>
-                    <div class="flex-1 grid grid-cols-12 gap-2">
-                      <input x-model="item.date"   @input="lpDirty=true" placeholder="2026/04" class="col-span-2 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-primary">
-                      <input x-model="item.source" @input="lpDirty=true" placeholder="媒体名"  class="col-span-2 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-primary">
-                      <input x-model="item.title"  @input="lpDirty=true" placeholder="記事タイトル" class="col-span-5 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-primary">
-                      <input x-model="item.url"    @input="lpDirty=true" placeholder="https://..." class="col-span-3 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-primary">
-                    </div>
-                    <button @click="removeLPItem(idx)" class="flex-shrink-0 w-7 h-7 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 flex items-center justify-center opacity-0 group-hover:opacity-100 mt-0.5"><i class="fas fa-trash text-xs"></i></button>
+                  </template>
+                  <template x-if="!lpWorkflow.run">
+                    <span class="text-xs text-gray-400">未取得</span>
+                  </template>
+                </div>
+                <button @click="runAutoScrape()" :disabled="lpScraping" class="flex items-center gap-2 px-4 py-2.5 bg-warm/10 text-warm rounded-xl text-sm font-semibold hover:bg-warm/20 transition-colors disabled:opacity-50">
+                  <i class="fas fa-robot" :class="lpScraping?'animate-spin':''"></i>
+                  <span x-text="lpScraping?'実行中...':'ニュース自動収集'"></span>
+                </button>
+                <button @click="publishLP()" :disabled="lpPublishing||lpItems.length===0" class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-sm">
+                  <i class="fas fa-cloud-arrow-up" :class="lpPublishing?'animate-bounce':''"></i>
+                  <span x-text="lpPublishing?'公開中...':'LP に公開'"></span>
+                </button>
+              </div>
+
+              <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                  <div><h3 class="font-semibold text-gray-900">ニュース記事</h3><p class="text-xs text-gray-400 mt-0.5">編集後「LP に公開」で Firebase Hosting に反映されます（約1分）</p></div>
+                  <button @click="addLPItem()" class="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium transition-colors">
+                    <i class="fas fa-circle-plus text-primary"></i>記事を追加
+                  </button>
+                </div>
+                <template x-if="lpLoading"><div class="py-12 text-center text-gray-400 text-sm"><i class="fas fa-spinner fa-spin text-2xl text-primary mb-3 block"></i>読み込み中...</div></template>
+                <template x-if="!lpLoading">
+                  <div class="divide-y divide-gray-50">
+                    <template x-for="(item, idx) in lpItems" :key="idx">
+                      <div class="px-5 py-4 flex gap-4 items-start hover:bg-gray-50/50 group">
+                        <div class="flex-shrink-0 flex flex-col gap-1 pt-1">
+                          <button @click="moveLPItem(idx,-1)" :disabled="idx===0" class="w-6 h-6 rounded-lg text-gray-300 hover:text-gray-500 hover:bg-gray-100 disabled:opacity-20 flex items-center justify-center text-xs"><i class="fas fa-chevron-up"></i></button>
+                          <button @click="moveLPItem(idx,1)"  :disabled="idx===lpItems.length-1" class="w-6 h-6 rounded-lg text-gray-300 hover:text-gray-500 hover:bg-gray-100 disabled:opacity-20 flex items-center justify-center text-xs"><i class="fas fa-chevron-down"></i></button>
+                        </div>
+                        <div class="flex-1 grid grid-cols-12 gap-2">
+                          <input x-model="item.date"   @input="lpDirty=true" placeholder="2026/04" class="col-span-2 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-primary">
+                          <input x-model="item.source" @input="lpDirty=true" placeholder="媒体名"  class="col-span-2 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-primary">
+                          <input x-model="item.title"  @input="lpDirty=true" placeholder="記事タイトル" class="col-span-5 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-primary">
+                          <input x-model="item.url"    @input="lpDirty=true" placeholder="https://..." class="col-span-3 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-primary">
+                        </div>
+                        <button @click="removeLPItem(idx)" class="flex-shrink-0 w-7 h-7 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 flex items-center justify-center opacity-0 group-hover:opacity-100 mt-0.5"><i class="fas fa-trash text-xs"></i></button>
+                      </div>
+                    </template>
                   </div>
                 </template>
               </div>
-            </template>
-          </div>
-          <template x-if="lpDirty">
-            <div class="text-xs text-amber-600 text-center flex items-center justify-center gap-1.5">
-              <i class="fas fa-circle-dot animate-pulse"></i>未保存の変更があります。「LP に公開」で Firebase Hosting に反映してください。
+              <template x-if="lpDirty">
+                <div class="text-xs text-amber-600 text-center flex items-center justify-center gap-1.5">
+                  <i class="fas fa-circle-dot animate-pulse"></i>未保存の変更があります。「LP に公開」で Firebase Hosting に反映してください。
+                </div>
+              </template>
             </div>
           </template>
+
+          <!-- 改訂履歴タブ -->
+          <template x-if="lpTab==='history'">
+            <div class="space-y-4">
+              <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                  <div>
+                    <h3 class="font-semibold text-gray-900">LP 改訂履歴</h3>
+                    <p class="text-xs text-gray-400 mt-0.5">index.html のコミット履歴（直近30件）</p>
+                  </div>
+                  <button @click="loadLPHistory()" class="text-gray-400 hover:text-primary text-sm p-2 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-rotate" :class="lpHistoryLoading?'animate-spin':''"></i>
+                  </button>
+                </div>
+                <template x-if="lpHistoryLoading">
+                  <div class="py-12 text-center text-gray-400 text-sm">
+                    <i class="fas fa-spinner fa-spin text-2xl text-primary mb-3 block"></i>読み込み中...
+                  </div>
+                </template>
+                <template x-if="!lpHistoryLoading && lpHistory.length===0">
+                  <div class="py-12 text-center text-gray-400 text-sm">履歴がありません</div>
+                </template>
+                <template x-if="!lpHistoryLoading && lpHistory.length>0">
+                  <div class="divide-y divide-gray-50">
+                    <template x-for="(commit, idx) in lpHistory" :key="commit.sha">
+                      <div class="px-5 py-4 flex gap-4 items-start hover:bg-gray-50/50">
+                        <div class="flex-shrink-0 mt-0.5">
+                          <div class="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <i class="fas fa-code-commit text-primary text-xs"></i>
+                          </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <div class="flex items-start justify-between gap-2">
+                            <p class="text-sm font-medium text-gray-800 leading-snug" x-text="commit.message"></p>
+                            <a :href="commit.url" target="_blank"
+                               class="flex-shrink-0 text-xs text-gray-400 hover:text-primary font-mono bg-gray-100 px-2 py-0.5 rounded-lg hover:bg-primary/10 transition-colors"
+                               x-text="commit.sha"></a>
+                          </div>
+                          <div class="flex items-center gap-3 mt-1">
+                            <span class="text-xs text-gray-400"><i class="fas fa-user text-xs mr-1"></i><span x-text="commit.author"></span></span>
+                            <span class="text-xs text-gray-400"><i class="fas fa-clock text-xs mr-1"></i><span x-text="commit.date"></span></span>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+
         </div>
       </template>
 
@@ -661,6 +775,7 @@ function app() {
 
     // LP 管理
     lpItems: [], lpLoading:false, lpDirty:false, lpPublishing:false, lpScraping:false, lpWorkflow:{ run:null },
+    lpTab: 'preview', lpHistory: [], lpHistoryLoading: false,
 
     // モーダル
     addActionOpen: false, newAction:{ type:'電話', content:'' },
@@ -1046,6 +1161,16 @@ function app() {
         setTimeout(async()=>{ const w=await fns.httpsCallable('getWorkflowStatus')(); this.lpWorkflow={run:w.data?.run||null}; },3000);
       } catch(e) { this.showToast(e.message,'error'); }
       finally { this.lpScraping=false; }
+    },
+
+    async loadLPHistory() {
+      if (this.lpHistoryLoading) return;
+      this.lpHistoryLoading = true;
+      try {
+        const r = await fns.httpsCallable('getLPHistory')();
+        this.lpHistory = r.data?.commits || [];
+      } catch(e) { this.showToast(e.message, 'error'); this.lpHistory = []; }
+      finally { this.lpHistoryLoading = false; }
     },
 
     // ── ユーティリティ ────────────────────────────────

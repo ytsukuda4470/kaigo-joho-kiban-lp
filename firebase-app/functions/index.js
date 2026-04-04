@@ -227,6 +227,26 @@ exports.triggerNewsUpdate = onCall(
   }
 );
 
+// ── LP 改訂履歴 ───────────────────────────────────────────
+
+exports.getLPHistory = onCall(
+  { region: REGION, secrets: [GITHUB_TOKEN] },
+  async (request) => {
+    requireAuth(request);
+    const res = await githubReq('commits?path=index.html&per_page=30');
+    if (!res.ok) return { commits: [] };
+    const data = await res.json();
+    const commits = data.map(c => ({
+      sha:     c.sha.slice(0, 7),
+      message: c.commit.message.split('\n')[0],
+      author:  c.commit.author.name,
+      date:    fmtDate(c.commit.author.date),
+      url:     c.html_url,
+    }));
+    return { commits };
+  }
+);
+
 exports.getWorkflowStatus = onCall(
   { region: REGION, secrets: [GITHUB_TOKEN] },
   async (request) => {
