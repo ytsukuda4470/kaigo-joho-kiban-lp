@@ -1,4 +1,4 @@
 .firebase/
 functions/node_modules/
 .firebaserc
-public/firebase-config.js
+# public/firebase-config.js  ← 公開情報のためコミット対象に変更済み

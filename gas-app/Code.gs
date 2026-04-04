@@ -40,17 +40,10 @@ function doGet(e) {
 
 function doPost(e) {
   try {
-    const payload = parsePostPayload(e);
-
-    // ── メール送信アクション（Firebase Functions から呼び出し） ──
-    if (payload.action === 'sendEmail') {
-      return handleSendEmail(payload);
-    }
-
-    // ── 問い合わせ登録（LP フォームから） ──
     const ss = getSpreadsheet();
     const inqSh = ensureInquirySheet(ss);
     const headers = inqSh.getRange(1, 1, 1, inqSh.getLastColumn()).getValues()[0];
+    const payload = parsePostPayload(e);
     const now = new Date();
 
     const rowMap = {
@@ -80,32 +73,8 @@ function doPost(e) {
 
     return jsonResponse({ success: true });
   } catch (err) {
-    return jsonResponse({ success: false, error: err.message });
+    return jsonResponse({ success: false, error: err.message }, 500);
   }
-}
-
-/**
- * メール送信ハンドラ
- * リクエスト: { action:'sendEmail', secret, to, subject, body, senderName }
- */
-function handleSendEmail(payload) {
-  // 共有シークレットで認証（スクリプトプロパティ: GAS_SECRET）
-  const secret = PropertiesService.getScriptProperties().getProperty('GAS_SECRET') || '';
-  if (secret && payload.secret !== secret) {
-    return jsonResponse({ success: false, error: '認証エラー' });
-  }
-
-  const { to, subject, body, senderName } = payload;
-  if (!to || !subject) {
-    return jsonResponse({ success: false, error: '宛先と件名は必須です' });
-  }
-
-  GmailApp.sendEmail(to, subject, body || '', {
-    name:    senderName || '株式会社２７９',
-    replyTo: 'kiban@279279.net',
-  });
-
-  return jsonResponse({ success: true });
 }
 
 function parsePostPayload(e) {
@@ -671,21 +640,6 @@ function formatDateShort(val) {
     if (isNaN(d)) return String(val);
     return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
   } catch { return String(val); }
-}
-
-// ============================================================
-//  初期設定（GASエディタから一度だけ実行）
-// ============================================================
-
-/**
- * GAS_SECRET をスクリプトプロパティに保存する。
- * GASエディタの「実行」メニューから initGasSecret() を選んで実行してください。
- * 実行後はこの関数を削除しても構いません。
- */
-function initGasSecret() {
-  const SECRET = '9eec86e33c1aeda5ca73e41767ee095c29f25f9217495231';
-  PropertiesService.getScriptProperties().setProperty('GAS_SECRET', SECRET);
-  Logger.log('GAS_SECRET を設定しました: ' + SECRET.slice(0, 8) + '...');
 }
 
 // ============================================================
