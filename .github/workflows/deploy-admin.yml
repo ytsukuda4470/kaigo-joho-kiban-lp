@@ -44,6 +44,7 @@ jobs:
         working-directory: firebase-app/functions
 
       - name: Detect changed paths
+        # 実行ディレクトリは常にリポジトリルート（firebase.json / .firebaserc がある場所）
         id: changes
         run: |
           CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only HEAD 2>/dev/null || echo "")
@@ -102,7 +103,7 @@ jobs:
             echo "::error::FIREBASE_TOKEN が未設定です"
             exit 1
           fi
-          cd firebase-app
+          # ルートの firebase.json / .firebaserc を使うため cd しない
           firebase use kaigo-kiban-pm --token "$FIREBASE_TOKEN"
           firebase deploy --only "${{ steps.targets.outputs.targets }}" \
             --token "$FIREBASE_TOKEN" --non-interactive
