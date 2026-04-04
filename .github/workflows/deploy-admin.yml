@@ -138,7 +138,7 @@ jobs:
           echo "Functions をデプロイします（シークレット設定済みが前提）"
           firebase use kaigo-kiban-pm --token "$FIREBASE_TOKEN"
           firebase deploy --only functions \
-            --token "$FIREBASE_TOKEN" --non-interactive
+            --token "$FIREBASE_TOKEN" --non-interactive --force
         continue-on-error: true  # シークレット未設定時もワークフロー全体は成功扱い
 
       - name: Summary
