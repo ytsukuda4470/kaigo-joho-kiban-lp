@@ -7,6 +7,7 @@ const { initializeApp }      = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const fetch      = require('node-fetch');
 const cheerio    = require('cheerio');
+const nodemailer = require('nodemailer');
 
 initializeApp();
 const db = getFirestore();
@@ -19,15 +20,66 @@ const KEYWORD        = '介護情報基盤';
 // ── シークレット定義 ──────────────────────────────────────
 // firebase functions:secrets:set GCHAT_WEBHOOK_URL
 // firebase functions:secrets:set GITHUB_TOKEN
-const GCHAT_WEBHOOK_URL   = defineSecret('GCHAT_WEBHOOK_URL');
-const GITHUB_TOKEN        = defineSecret('GITHUB_TOKEN');
-// ※ メール送信は GAS の sendEmail 関数が担当（kiban@279279.netはグループメールのため）
+// firebase functions:secrets:set GMAIL_USER          (例: info@279279.net)
+// firebase functions:secrets:set GMAIL_APP_PASSWORD  (Googleアカウントのアプリパスワード)
+const GCHAT_WEBHOOK_URL = defineSecret('GCHAT_WEBHOOK_URL');
+const GITHUB_TOKEN      = defineSecret('GITHUB_TOKEN');
+const GMAIL_USER        = defineSecret('GMAIL_USER');
+const GMAIL_APP_PASSWORD = defineSecret('GMAIL_APP_PASSWORD');
 
 // ── ユーティリティ ────────────────────────────────────────
 
 function requireAuth(request) {
   if (!request.auth) throw new HttpsError('unauthenticated', '認証が必要です');
 }
+
+// ── メール送信 ────────────────────────────────────────────
+// GMAIL_USER / GMAIL_APP_PASSWORD を firebase functions:secrets:set で設定してください。
+// kiban@279279.net はグループメールのため Reply-To に設定し、送信元は GMAIL_USER を使用します。
+
+exports.sendEmail = onCall(
+  { region: REGION, secrets: [GMAIL_USER, GMAIL_APP_PASSWORD] },
+  async (request) => {
+    requireAuth(request);
+    const { to, subject, body, inquiryId } = request.data;
+    if (!to || !subject) throw new HttpsError('invalid-argument', '宛先と件名は必須です');
+
+    const gmailUser = GMAIL_USER.value();
+    const gmailPass = GMAIL_APP_PASSWORD.value();
+    if (!gmailUser || !gmailPass) {
+      throw new HttpsError('failed-precondition', 'GMAIL_USER / GMAIL_APP_PASSWORD が未設定です');
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: gmailUser, pass: gmailPass },
+    });
+
+    await transporter.sendMail({
+      from:    `"株式会社２７９" <${gmailUser}>`,
+      replyTo: 'kiban@279279.net',
+      to,
+      subject,
+      text: body || '',
+    });
+
+    // 対応記録に保存
+    if (inquiryId) {
+      await db.collection('actions').add({
+        inquiryId,
+        type:      'メール送信',
+        content:   `To: ${to}\n件名: ${subject}\n\n${body||''}`,
+        staff:     request.auth.token.email || '',
+        createdAt: FieldValue.serverTimestamp(),
+      });
+      await db.collection('inquiries').doc(inquiryId).update({
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    }
+
+    return { success: true };
+  }
+);
 
 function fmtDate(d) {
   if (!d) return '';
