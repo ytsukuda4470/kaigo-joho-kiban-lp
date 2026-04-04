@@ -909,38 +909,249 @@
                 <p class="text-gray-600 text-sm">迷ったらお気軽にご相談ください。事業所の環境に合わせてご提案します。</p>
             </div>
 
-            <!-- おすすめ2機種 -->
+            <!-- 接続方式リード -->
+            <div class="reveal text-center mb-8">
+                <p class="text-sm text-gray-600 mb-3">カードリーダーには <strong class="text-gray-800">２つの接続方式</strong> があります。<br class="hidden sm:inline">お使いの機器に合わせて選んでください。</p>
+                <div class="inline-flex items-center gap-6 bg-white rounded-full px-6 py-2.5 shadow-sm border border-gray-200 text-sm">
+                    <span class="flex items-center gap-1.5 text-primary font-bold"><i class="fas fa-plug text-xs"></i>有線 USB → PC / Mac</span>
+                    <span class="text-gray-300">|</span>
+                    <span class="flex items-center gap-1.5 text-accent font-bold"><i class="fab fa-bluetooth text-xs"></i>Bluetooth無線 → タブレット / iPad</span>
+                </div>
+            </div>
+
+            <!-- 有線 vs 無線 2カラム -->
             <div class="grid md:grid-cols-2 gap-6 mb-6">
-                <!-- USB推奨 -->
-                <div class="reveal card-hover bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
-                    <div class="bg-gradient-to-r from-blue-50 to-blue-100/50 h-36 flex items-center justify-center border-b border-gray-200">
-                        <img src="https://www.iodata.jp/product/interface/iccardreader/usb-nfc4a/gallery/usb-nfc4a_01.png" alt="I-O DATA USB-NFC4A" class="h-28 object-contain" onerror="this.parentElement.innerHTML='<div class=\'text-center\'><i class=\'fas fa-credit-card text-5xl text-blue-300\'></i><p class=\'text-sm text-gray-400 mt-2\'>USB-NFC4A</p></div>'">
-                    </div>
-                    <div class="p-5">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-base font-bold text-gray-900">I-O DATA USB-NFC4A</h3>
-                            <span class="text-xs bg-primary/10 text-primary px-2 py-1 rounded font-bold">USB おすすめ</span>
+
+                <!-- ① 有線（USB）接続 -->
+                <div class="reveal bg-white rounded-2xl overflow-hidden border-2 border-primary/25 shadow-sm flex flex-col">
+                    <!-- カラーヘッダー -->
+                    <div class="bg-gradient-to-r from-primary to-[#2D7A4E] px-5 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-plug text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white text-base leading-tight">有線（USB）接続</h3>
+                                <p class="text-xs text-white/75">ケーブルで安定・常設向け</p>
+                            </div>
+                            <span class="ml-auto bg-white/25 text-white text-xs px-3 py-1 rounded-full font-bold whitespace-nowrap">PC おすすめ</span>
                         </div>
-                        <p class="text-xs text-gray-500 mb-2">USB接続・Windows/Mac対応・3年保証</p>
-                        <p class="text-sm text-gray-600">パソコンで使うならこれ。コンパクトで場所を取りません。</p>
-                        <a href="https://www.iodata.jp/product/interface/iccardreader/usb-nfc4a/index.htm" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-xs text-primary hover:underline mt-2"><i class="fas fa-external-link-alt mr-1"></i>メーカー公式</a>
+                    </div>
+
+                    <!-- 接続イラスト -->
+                    <div class="bg-gradient-to-br from-emerald-50 to-blue-50/40 py-6 px-2">
+                        <div class="flex items-end justify-center gap-2">
+                            <!-- PC -->
+                            <div class="flex flex-col items-center gap-1">
+                                <svg width="72" height="52" viewBox="0 0 72 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="4" y="2" width="64" height="40" rx="4" fill="#EBF8F0" stroke="#3D8B5E" stroke-width="1.5"/>
+                                    <rect x="7" y="5" width="58" height="34" rx="2" fill="white"/>
+                                    <rect x="12" y="11" width="32" height="3" rx="1.5" fill="#3D8B5E" fill-opacity="0.45"/>
+                                    <rect x="12" y="17" width="24" height="2" rx="1" fill="#3D8B5E" fill-opacity="0.25"/>
+                                    <rect x="12" y="22" width="28" height="2" rx="1" fill="#3D8B5E" fill-opacity="0.18"/>
+                                    <rect x="46" y="10" width="12" height="9" rx="2" fill="#3D8B5E" fill-opacity="0.1" stroke="#3D8B5E" stroke-width="0.8" stroke-opacity="0.35"/>
+                                    <rect x="48" y="12" width="8" height="5" rx="1" fill="#3D8B5E" fill-opacity="0.2"/>
+                                    <path d="M2 46 C2 44 4 42 6 42 L66 42 C68 42 70 44 70 46 L70 48 C70 50 68 50 66 50 L6 50 C4 50 2 50 2 48 Z" fill="#C4D9CC" stroke="#3D8B5E" stroke-width="1"/>
+                                    <rect x="28" y="44" width="16" height="3.5" rx="2" fill="#9FBDA8"/>
+                                    <circle cx="36" cy="45.8" r="1" fill="#7CA88A"/>
+                                </svg>
+                                <span class="text-xs text-gray-500 font-medium">PC / Mac</span>
+                            </div>
+                            <!-- USB ケーブル -->
+                            <div class="flex flex-col items-center pb-6">
+                                <svg width="52" height="20" viewBox="0 0 52 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="0" y="6" width="8" height="8" rx="1.5" fill="#6B7280" stroke="#4B5563" stroke-width="1"/>
+                                    <rect x="2.5" y="8.5" width="3" height="3" rx="0.5" fill="white"/>
+                                    <line x1="8" y1="10" x2="44" y2="10" stroke="#9CA3AF" stroke-width="2.5" stroke-dasharray="5 3"/>
+                                    <rect x="44" y="6" width="8" height="8" rx="1.5" fill="#6B7280" stroke="#4B5563" stroke-width="1"/>
+                                    <rect x="46.5" y="8.5" width="3" height="3" rx="0.5" fill="white"/>
+                                    <text x="26" y="19" text-anchor="middle" font-size="7" fill="#9CA3AF" font-family="sans-serif" font-weight="600">USB</text>
+                                </svg>
+                            </div>
+                            <!-- カードリーダー USB型 -->
+                            <div class="flex flex-col items-center gap-1">
+                                <svg width="46" height="58" viewBox="0 0 46 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="5" y="2" width="36" height="46" rx="5" fill="white" stroke="#3D8B5E" stroke-width="1.5"/>
+                                    <rect x="5" y="2" width="36" height="10" rx="5" fill="#EBF8F0" stroke="#3D8B5E" stroke-width="1.5"/>
+                                    <circle cx="23" cy="7" r="2.5" fill="#4ADE80"/>
+                                    <path d="M15 27 Q23 20 31 27" stroke="#3D8B5E" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                    <path d="M12 31 Q23 18 34 31" stroke="#3D8B5E" stroke-width="1.5" stroke-linecap="round" fill="none" stroke-opacity="0.4"/>
+                                    <circle cx="23" cy="34" r="2" fill="#3D8B5E" fill-opacity="0.7"/>
+                                    <rect x="8" y="38" width="30" height="7" rx="2" fill="#EBF8F0" stroke="#3D8B5E" stroke-width="0.8" stroke-opacity="0.4"/>
+                                    <text x="23" y="43.5" text-anchor="middle" font-size="5.5" fill="#3D8B5E" font-weight="bold" font-family="sans-serif">NFC</text>
+                                    <rect x="15" y="49" width="16" height="8" rx="2" fill="#9CA3AF"/>
+                                    <rect x="18" y="51.5" width="10" height="4" rx="1" fill="white"/>
+                                    <rect x="20" y="53" width="6" height="2" rx="0.5" fill="#D1D5DB"/>
+                                </svg>
+                                <span class="text-xs text-gray-500 font-medium">カードリーダー</span>
+                            </div>
+                            <!-- 矢印 + マイナカード -->
+                            <div class="flex flex-col items-center pb-6 gap-1">
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7 L12 7 M8 3 L12 7 L8 11" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </div>
+                            <div class="flex flex-col items-center gap-1">
+                                <svg width="42" height="28" viewBox="0 0 42 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="1" y="1" width="40" height="26" rx="3.5" fill="white" stroke="#D1D5DB" stroke-width="1"/>
+                                    <rect x="1" y="1" width="40" height="7" rx="3.5" fill="#2563EB"/>
+                                    <rect x="1" y="4.5" width="40" height="3.5" fill="#2563EB"/>
+                                    <rect x="4" y="11" width="10" height="13" rx="1.5" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="0.8"/>
+                                    <circle cx="9" cy="15.5" r="3" fill="#BFDBFE"/>
+                                    <rect x="16" y="12" width="20" height="2.5" rx="1.25" fill="#D1D5DB"/>
+                                    <rect x="16" y="16.5" width="15" height="1.8" rx="0.9" fill="#E5E7EB"/>
+                                    <rect x="16" y="20" width="12" height="1.8" rx="0.9" fill="#E5E7EB"/>
+                                    <rect x="4" y="3" width="7" height="3.5" rx="0.8" fill="#FDE68A" stroke="#F59E0B" stroke-width="0.6"/>
+                                </svg>
+                                <span class="text-xs text-gray-500 font-medium">マイナカード</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 対応デバイスバッジ -->
+                    <div class="px-5 py-3 flex flex-wrap gap-2 border-b border-gray-100">
+                        <span class="inline-flex items-center gap-1.5 text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-full font-medium"><i class="fas fa-laptop text-xs"></i>Windows PC</span>
+                        <span class="inline-flex items-center gap-1.5 text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-full font-medium"><i class="fab fa-apple text-xs"></i>Mac</span>
+                    </div>
+
+                    <!-- 製品情報 -->
+                    <div class="p-5 flex-1 flex flex-col">
+                        <div class="flex items-start gap-3 mb-3">
+                            <img src="https://www.iodata.jp/product/interface/iccardreader/usb-nfc4a/gallery/usb-nfc4a_01.png"
+                                 alt="USB-NFC4A" class="w-16 h-16 object-contain rounded-xl border border-gray-100 bg-gray-50 flex-shrink-0 p-1"
+                                 onerror="this.style.display='none'">
+                            <div>
+                                <h4 class="font-bold text-gray-900 text-sm">I-O DATA USB-NFC4A</h4>
+                                <p class="text-xs text-gray-500 mt-0.5">USB接続 · Windows/Mac対応 · 3年保証</p>
+                            </div>
+                        </div>
+                        <ul class="text-xs text-gray-600 space-y-1.5 mb-4 flex-1">
+                            <li><i class="fas fa-check text-primary mr-1.5"></i>コンパクトで場所を取らない</li>
+                            <li><i class="fas fa-check text-primary mr-1.5"></i>安定した有線接続・初期設定が簡単</li>
+                            <li><i class="fas fa-check text-primary mr-1.5"></i>デスクに常設して使える</li>
+                        </ul>
+                        <a href="https://www.iodata.jp/product/interface/iccardreader/usb-nfc4a/index.htm"
+                           target="_blank" rel="noopener noreferrer"
+                           class="inline-flex items-center text-xs text-primary hover:underline font-medium">
+                            <i class="fas fa-external-link-alt mr-1"></i>メーカー公式ページ
+                        </a>
                     </div>
                 </div>
-                <!-- BT推奨 -->
-                <div class="reveal reveal-delay-1 card-hover bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
-                    <div class="bg-gradient-to-r from-accent/5 to-yellow-50 h-36 flex items-center justify-center border-b border-gray-200">
-                        <img src="https://www.iodata.jp/product/interface/iccardreader/ble-nfc/gallery/ble-nfc_01.png" alt="I-O DATA BLE-NFC" class="h-28 object-contain" onerror="this.parentElement.innerHTML='<div class=\'text-center\'><i class=\'fab fa-bluetooth-b text-5xl text-accent\'></i><p class=\'text-sm text-gray-400 mt-2\'>BLE-NFC</p></div>'">
-                    </div>
-                    <div class="p-5">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-base font-bold text-gray-900">I-O DATA BLE-NFC</h3>
-                            <span class="text-xs bg-accent/10 text-accent px-2 py-1 rounded font-bold">BT おすすめ</span>
+
+                <!-- ② Bluetooth無線接続 -->
+                <div class="reveal reveal-delay-1 bg-white rounded-2xl overflow-hidden border-2 border-accent/25 shadow-sm flex flex-col">
+                    <!-- カラーヘッダー -->
+                    <div class="bg-gradient-to-r from-accent to-[#C55F10] px-5 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fab fa-bluetooth text-white text-base"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white text-base leading-tight">Bluetooth 無線接続</h3>
+                                <p class="text-xs text-white/75">ワイヤレスで自由に持ち運べる</p>
+                            </div>
+                            <span class="ml-auto bg-white/25 text-white text-xs px-3 py-1 rounded-full font-bold whitespace-nowrap">訪問向け</span>
                         </div>
-                        <p class="text-xs text-gray-500 mb-2">Bluetooth+USB・iPad/Android対応・3年保証</p>
-                        <p class="text-sm text-gray-600">タブレットでも使えるワイヤレスタイプ。訪問先にも持ち運べます。</p>
-                        <a href="https://www.iodata.jp/product/interface/iccardreader/ble-nfc/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-xs text-primary hover:underline mt-2"><i class="fas fa-external-link-alt mr-1"></i>メーカー公式</a>
+                    </div>
+
+                    <!-- 接続イラスト -->
+                    <div class="bg-gradient-to-br from-orange-50 to-amber-50/40 py-6 px-2">
+                        <div class="flex items-end justify-center gap-2">
+                            <!-- タブレット -->
+                            <div class="flex flex-col items-center gap-1">
+                                <svg width="52" height="68" viewBox="0 0 52 68" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="2" y="2" width="48" height="64" rx="7" fill="#FFF7ED" stroke="#E87327" stroke-width="1.5"/>
+                                    <rect x="5" y="8" width="42" height="50" rx="3" fill="white"/>
+                                    <circle cx="26" cy="63" r="2.8" fill="#FBD5B0" stroke="#E87327" stroke-width="0.8"/>
+                                    <circle cx="26" cy="5" r="1.5" fill="#FBD5B0"/>
+                                    <rect x="9" y="14" width="34" height="3.5" rx="1.75" fill="#E87327" fill-opacity="0.45"/>
+                                    <rect x="9" y="21" width="26" height="2.5" rx="1.25" fill="#E87327" fill-opacity="0.25"/>
+                                    <rect x="9" y="27" width="22" height="2.5" rx="1.25" fill="#E87327" fill-opacity="0.18"/>
+                                    <rect x="9" y="35" width="11" height="11" rx="2.5" fill="#FEF3C7" stroke="#FCD34D" stroke-width="0.8"/>
+                                    <rect x="22" y="35" width="11" height="11" rx="2.5" fill="#DBEAFE" stroke="#93C5FD" stroke-width="0.8"/>
+                                    <rect x="35" y="35" width="11" height="11" rx="2.5" fill="#D1FAE5" stroke="#6EE7B7" stroke-width="0.8"/>
+                                </svg>
+                                <span class="text-xs text-gray-500 font-medium">iPad / タブレット</span>
+                            </div>
+                            <!-- BT 電波 -->
+                            <div class="flex flex-col items-center pb-8">
+                                <svg width="44" height="28" viewBox="0 0 44 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 14 Q14 2 24 14" stroke="#E87327" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.35"/>
+                                    <path d="M10 14 Q18 5 26 14" stroke="#E87327" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.65"/>
+                                    <path d="M16 14 Q20 9 24 14" stroke="#E87327" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                    <circle cx="25" cy="14" r="2.5" fill="#E87327"/>
+                                    <path d="M22 18 L28 22 L24 26 L24 18 L28 22 L24 26" stroke="#E87327" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" transform="translate(8, -16)"/>
+                                    <text x="14" y="27" text-anchor="middle" font-size="7" fill="#9CA3AF" font-family="sans-serif" font-weight="600">BT</text>
+                                </svg>
+                            </div>
+                            <!-- カードリーダー BT型（ポータブル） -->
+                            <div class="flex flex-col items-center gap-1">
+                                <svg width="44" height="64" viewBox="0 0 44 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="5" y="2" width="34" height="50" rx="9" fill="white" stroke="#E87327" stroke-width="1.5"/>
+                                    <rect x="5" y="2" width="34" height="12" rx="9" fill="#FFF0E6" stroke="#E87327" stroke-width="1.5"/>
+                                    <circle cx="22" cy="8" r="3" fill="#60A5FA"/>
+                                    <circle cx="32" cy="8" r="1.8" fill="#FCA5A5"/>
+                                    <path d="M19 20 L25 25 L20 30 L20 20 L25 25 L20 30" stroke="#E87327" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                                    <path d="M14 37 Q22 30 30 37" stroke="#E87327" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                    <path d="M11 41 Q22 28 33 41" stroke="#E87327" stroke-width="1.5" stroke-linecap="round" fill="none" stroke-opacity="0.4"/>
+                                    <circle cx="22" cy="44" r="2" fill="#E87327" fill-opacity="0.6"/>
+                                    <rect x="5" y="52" width="34" height="10" rx="5" fill="#FFF0E6" stroke="#E87327" stroke-width="1"/>
+                                    <rect x="13" y="55.5" width="18" height="3" rx="1.5" fill="#E87327" fill-opacity="0.5"/>
+                                    <rect x="14" y="57" width="7" height="1" rx="0.5" fill="#E87327" fill-opacity="0.8"/>
+                                    <rect x="23" y="57" width="5" height="1" rx="0.5" fill="#E87327" fill-opacity="0.4"/>
+                                </svg>
+                                <span class="text-xs text-gray-500 font-medium">カードリーダー</span>
+                            </div>
+                            <!-- 矢印 -->
+                            <div class="flex flex-col items-center pb-8">
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7 L12 7 M8 3 L12 7 L8 11" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </div>
+                            <!-- マイナカード -->
+                            <div class="flex flex-col items-center gap-1">
+                                <svg width="42" height="28" viewBox="0 0 42 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="1" y="1" width="40" height="26" rx="3.5" fill="white" stroke="#D1D5DB" stroke-width="1"/>
+                                    <rect x="1" y="1" width="40" height="7" rx="3.5" fill="#2563EB"/>
+                                    <rect x="1" y="4.5" width="40" height="3.5" fill="#2563EB"/>
+                                    <rect x="4" y="11" width="10" height="13" rx="1.5" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="0.8"/>
+                                    <circle cx="9" cy="15.5" r="3" fill="#BFDBFE"/>
+                                    <rect x="16" y="12" width="20" height="2.5" rx="1.25" fill="#D1D5DB"/>
+                                    <rect x="16" y="16.5" width="15" height="1.8" rx="0.9" fill="#E5E7EB"/>
+                                    <rect x="16" y="20" width="12" height="1.8" rx="0.9" fill="#E5E7EB"/>
+                                    <rect x="4" y="3" width="7" height="3.5" rx="0.8" fill="#FDE68A" stroke="#F59E0B" stroke-width="0.6"/>
+                                </svg>
+                                <span class="text-xs text-gray-500 font-medium">マイナカード</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 対応デバイスバッジ -->
+                    <div class="px-5 py-3 flex flex-wrap gap-2 border-b border-gray-100">
+                        <span class="inline-flex items-center gap-1.5 text-xs bg-accent/10 text-accent px-3 py-1.5 rounded-full font-medium"><i class="fas fa-tablet-screen-button text-xs"></i>iPad / Android タブレット</span>
+                        <span class="inline-flex items-center gap-1.5 text-xs bg-accent/10 text-accent px-3 py-1.5 rounded-full font-medium"><i class="fas fa-laptop text-xs"></i>PC / Mac も対応</span>
+                    </div>
+
+                    <!-- 製品情報 -->
+                    <div class="p-5 flex-1 flex flex-col">
+                        <div class="flex items-start gap-3 mb-3">
+                            <img src="https://www.iodata.jp/product/interface/iccardreader/ble-nfc/gallery/ble-nfc_01.png"
+                                 alt="BLE-NFC" class="w-16 h-16 object-contain rounded-xl border border-gray-100 bg-gray-50 flex-shrink-0 p-1"
+                                 onerror="this.style.display='none'">
+                            <div>
+                                <h4 class="font-bold text-gray-900 text-sm">I-O DATA BLE-NFC</h4>
+                                <p class="text-xs text-gray-500 mt-0.5">Bluetooth+USB · iPad/Android対応 · 3年保証</p>
+                            </div>
+                        </div>
+                        <ul class="text-xs text-gray-600 space-y-1.5 mb-4 flex-1">
+                            <li><i class="fas fa-check text-accent mr-1.5"></i>タブレット・スマホでワイヤレス使用</li>
+                            <li><i class="fas fa-check text-accent mr-1.5"></i>ケーブル不要・訪問先に持ち運び可</li>
+                            <li><i class="fas fa-check text-accent mr-1.5"></i>USB接続としても使える 2Way 対応</li>
+                        </ul>
+                        <a href="https://www.iodata.jp/product/interface/iccardreader/ble-nfc/"
+                           target="_blank" rel="noopener noreferrer"
+                           class="inline-flex items-center text-xs text-primary hover:underline font-medium">
+                            <i class="fas fa-external-link-alt mr-1"></i>メーカー公式ページ
+                        </a>
                     </div>
                 </div>
+
             </div>
 
             <!-- 他の製品（折りたたみ） -->
@@ -950,20 +1161,23 @@
                         <span><i class="fas fa-plus-circle text-primary mr-2"></i>その他の対応カードリーダーを見る（SONY PaSoRi、Maxell、AB Circle）</span>
                         <i class="fas fa-chevron-down text-gray-400"></i>
                     </summary>
-                    <div class="p-4 pt-0 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div class="bg-gray-50 rounded-lg p-4 border text-center">
+                    <div class="p-4 pt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-gray-50 rounded-xl p-4 border text-center">
+                            <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-2"><i class="fas fa-plug text-primary text-sm"></i></div>
                             <h4 class="font-bold text-sm text-gray-900 mb-1">SONY RC-S300 PaSoRi</h4>
-                            <p class="text-xs text-gray-500">USB接続・薄型軽量</p>
+                            <p class="text-xs text-gray-500 mb-2">USB接続・薄型軽量</p>
                             <a href="https://www.sony.jp/pasori/etax/" target="_blank" rel="noopener noreferrer" class="text-xs text-primary hover:underline"><i class="fas fa-external-link-alt mr-1"></i>公式</a>
                         </div>
-                        <div class="bg-gray-50 rounded-lg p-4 border text-center">
+                        <div class="bg-gray-50 rounded-xl p-4 border text-center">
+                            <div class="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-2"><i class="fab fa-bluetooth text-accent text-sm"></i></div>
                             <h4 class="font-bold text-sm text-gray-900 mb-1">Maxell M-1860B</h4>
-                            <p class="text-xs text-gray-500">BT+USB・iPhone/iPad対応</p>
+                            <p class="text-xs text-gray-500 mb-2">BT+USB・iPhone/iPad対応</p>
                             <a href="https://biz.maxell.com/ja/security_peripherals/m-1860b.html" target="_blank" rel="noopener noreferrer" class="text-xs text-primary hover:underline"><i class="fas fa-external-link-alt mr-1"></i>公式</a>
                         </div>
-                        <div class="bg-gray-50 rounded-lg p-4 border text-center">
+                        <div class="bg-gray-50 rounded-xl p-4 border text-center">
+                            <div class="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-2"><i class="fab fa-bluetooth text-accent text-sm"></i></div>
                             <h4 class="font-bold text-sm text-gray-900 mb-1">AB Circle CIR415A</h4>
-                            <p class="text-xs text-gray-500">BT+USB-C・バッテリー内蔵</p>
+                            <p class="text-xs text-gray-500 mb-2">BT+USB-C・バッテリー内蔵</p>
                             <a href="https://www.abcircle.co.jp/jp/product/16/CIR415A/" target="_blank" rel="noopener noreferrer" class="text-xs text-primary hover:underline"><i class="fas fa-external-link-alt mr-1"></i>公式</a>
                         </div>
                     </div>
