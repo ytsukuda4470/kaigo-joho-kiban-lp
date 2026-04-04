@@ -12,6 +12,11 @@ on:
       - "firebase.json"
       - ".firebaserc"
   workflow_dispatch:
+    inputs:
+      deploy_functions:
+        description: "Functions もデプロイする（シークレット設定済みの場合のみ）"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -47,33 +52,35 @@ jobs:
         # 実行ディレクトリは常にリポジトリルート（firebase.json / .firebaserc がある場所）
         id: changes
         run: |
-          CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only HEAD 2>/dev/null || echo "")
-          echo "changed=$CHANGED"
+          CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
+          echo "changed files: $CHANGED"
 
           DEPLOY_HOSTING=false
           DEPLOY_FUNCTIONS=false
           DEPLOY_FIRESTORE=false
 
-          if echo "$CHANGED" | grep -qE "^firebase-app/public/|^firebase(-app)?\.json|^\.firebaserc"; then
+          if echo "$CHANGED" | grep -qE "firebase-app/public/|firebase(\.json|-app/firebase\.json)|\.firebaserc"; then
             DEPLOY_HOSTING=true
           fi
-          if echo "$CHANGED" | grep -qE "^firebase-app/functions/"; then
+          if echo "$CHANGED" | grep -qE "firebase-app/functions/"; then
             DEPLOY_FUNCTIONS=true
           fi
-          if echo "$CHANGED" | grep -qE "^firebase-app/firestore\.(rules|indexes\.json)"; then
+          if echo "$CHANGED" | grep -qE "firebase-app/firestore\.(rules|indexes\.json)"; then
             DEPLOY_FIRESTORE=true
           fi
 
-          # workflow_dispatch は全部デプロイ
+          # workflow_dispatch で明示指定された場合のみ Functions をデプロイ
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             DEPLOY_HOSTING=true
-            DEPLOY_FUNCTIONS=true
             DEPLOY_FIRESTORE=true
+            if [ "${{ inputs.deploy_functions }}" = "true" ]; then
+              DEPLOY_FUNCTIONS=true
+            fi
           fi
 
-          echo "hosting=$DEPLOY_HOSTING"   >> $GITHUB_OUTPUT
-          echo "functions=$DEPLOY_FUNCTIONS" >> $GITHUB_OUTPUT
-          echo "firestore=$DEPLOY_FIRESTORE" >> $GITHUB_OUTPUT
+          echo "hosting=$DEPLOY_HOSTING"     >> $GITHUB_OUTPUT
+          echo "functions=$DEPLOY_FUNCTIONS"  >> $GITHUB_OUTPUT
+          echo "firestore=$DEPLOY_FIRESTORE"  >> $GITHUB_OUTPUT
 
       - name: Build deploy targets
         id: targets
@@ -88,14 +95,14 @@ jobs:
           if [ "${{ steps.changes.outputs.firestore }}" = "true" ]; then
             TARGETS="${TARGETS}firestore,"
           fi
-          TARGETS="${TARGETS%,}"  # 末尾のカンマを除去
+          TARGETS="${TARGETS%,}"
           if [ -z "$TARGETS" ]; then
-            TARGETS="hosting:admin"  # フォールバック
+            TARGETS="hosting:admin"
           fi
           echo "targets=$TARGETS" >> $GITHUB_OUTPUT
           echo "Deploy targets: $TARGETS"
 
-      - name: Deploy to Firebase
+      - name: Deploy Hosting & Firestore
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
@@ -103,10 +110,36 @@ jobs:
             echo "::error::FIREBASE_TOKEN が未設定です"
             exit 1
           fi
-          # ルートの firebase.json / .firebaserc を使うため cd しない
           firebase use kaigo-kiban-pm --token "$FIREBASE_TOKEN"
-          firebase deploy --only "${{ steps.targets.outputs.targets }}" \
+
+          # Hosting と Firestore のみ（シークレット不要）
+          SAFE_TARGETS=""
+          if [ "${{ steps.changes.outputs.hosting }}" = "true" ]; then
+            SAFE_TARGETS="${SAFE_TARGETS}hosting:admin,"
+          fi
+          if [ "${{ steps.changes.outputs.firestore }}" = "true" ]; then
+            SAFE_TARGETS="${SAFE_TARGETS}firestore,"
+          fi
+          SAFE_TARGETS="${SAFE_TARGETS%,}"
+
+          if [ -n "$SAFE_TARGETS" ]; then
+            echo "Deploying: $SAFE_TARGETS"
+            firebase deploy --only "$SAFE_TARGETS" \
+              --token "$FIREBASE_TOKEN" --non-interactive
+          else
+            echo "Hosting/Firestore のデプロイ対象なし"
+          fi
+
+      - name: Deploy Functions
+        if: steps.changes.outputs.functions == 'true'
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          echo "Functions をデプロイします（シークレット設定済みが前提）"
+          firebase use kaigo-kiban-pm --token "$FIREBASE_TOKEN"
+          firebase deploy --only functions \
             --token "$FIREBASE_TOKEN" --non-interactive
+        continue-on-error: true  # シークレット未設定時もワークフロー全体は成功扱い
 
       - name: Summary
         if: always()
@@ -116,4 +149,13 @@ jobs:
             echo "- targets: ${{ steps.targets.outputs.targets }}"
             echo "- 管理サイト: https://kaigo-kiban-pm.web.app"
             echo "- LP: https://kaigo-lp-279.web.app"
+            if [ "${{ steps.changes.outputs.functions }}" = "true" ]; then
+              echo ""
+              echo "⚠️ Functions を変更しました。シークレット未設定の場合は以下を実行してください："
+              echo "\`\`\`"
+              echo "firebase functions:secrets:set GMAIL_USER"
+              echo "firebase functions:secrets:set GMAIL_APP_PASSWORD"
+              echo "firebase deploy --only functions"
+              echo "\`\`\`"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
