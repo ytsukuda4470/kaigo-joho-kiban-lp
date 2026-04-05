@@ -963,11 +963,30 @@
 
             <!-- コントロールパネル（横幅いっぱい） -->
             <div class="mb-6">
-                <!-- 年度タブ -->
-                <div class="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit mb-4">
-                    <button onclick="setYearFilter('all')" id="year-tab-all" class="year-tab px-4 py-1.5 rounded-lg text-sm font-medium transition-all bg-white shadow-sm text-gray-900">すべて</button>
-                    <button onclick="setYearFilter('2026')" id="year-tab-2026" class="year-tab px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-gray-500 hover:text-gray-700">2026年</button>
-                    <button onclick="setYearFilter('2027')" id="year-tab-2027" class="year-tab px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-gray-500 hover:text-gray-700">2027年</button>
+                <!-- 年度タブ + 検索 -->
+                <div class="flex flex-wrap items-center gap-3 mb-4">
+                    <div class="flex gap-1 bg-gray-100 rounded-xl p-1 flex-wrap">
+                        <button onclick="setYearFilter('all')" id="year-tab-all" class="year-tab px-3 py-1.5 rounded-lg text-sm font-medium transition-all bg-white shadow-sm text-gray-900">すべて</button>
+                        <button onclick="setYearFilter('2026')" id="year-tab-2026" class="year-tab px-3 py-1.5 rounded-lg text-sm font-medium transition-all text-gray-500 hover:text-gray-700">
+                            <span class="inline-block w-2 h-2 rounded-full mr-1" style="background:#238e3a;"></span>2026年
+                        </button>
+                        <button onclick="setYearFilter('2027')" id="year-tab-2027" class="year-tab px-3 py-1.5 rounded-lg text-sm font-medium transition-all text-gray-500 hover:text-gray-700">
+                            <span class="inline-block w-2 h-2 rounded-full mr-1" style="background:#1d6fa3;"></span>2027年
+                        </button>
+                        <button onclick="setYearFilter('2028+')" id="year-tab-2028+" class="year-tab px-3 py-1.5 rounded-lg text-sm font-medium transition-all text-gray-500 hover:text-gray-700">
+                            <span class="inline-block w-2 h-2 rounded-full mr-1" style="background:#d97706;"></span>2028年以降
+                        </button>
+                        <button onclick="setYearFilter('未定')" id="year-tab-未定" class="year-tab px-3 py-1.5 rounded-lg text-sm font-medium transition-all text-gray-500 hover:text-gray-700">
+                            <span class="inline-block w-2 h-2 rounded-full mr-1 bg-gray-400"></span>未定
+                        </button>
+                    </div>
+                    <!-- 検索ボックス -->
+                    <div class="relative flex-1 min-w-48">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
+                        <input type="text" id="municipalities-search" placeholder="市区町村名・都道府県で検索…"
+                            oninput="searchMunicipalities(this.value)"
+                            class="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition">
+                    </div>
                 </div>
                 <!-- 地方フィルターボタン -->
                 <div class="flex flex-wrap gap-2" id="region-filter-buttons">
@@ -1025,16 +1044,12 @@
                         <div id="map-selected" class="text-center text-sm font-bold text-primary mt-2 min-h-5"></div>
                     </div>
                     <!-- 凡例 -->
-                    <div class="flex gap-4 mt-3 text-xs text-gray-500 justify-center">
-                        <span class="flex items-center gap-1.5">
-                            <span class="w-3 h-3 rounded-full inline-block" style="background:#238e3a;"></span>実施予定あり
-                        </span>
-                        <span class="flex items-center gap-1.5">
-                            <span class="w-3 h-3 rounded-full inline-block bg-gray-200"></span>該当なし
-                        </span>
-                        <span class="flex items-center gap-1.5">
-                            <span class="w-3 h-3 rounded-full inline-block" style="background:#1a6b2c;"></span>選択中
-                        </span>
+                    <div class="flex flex-wrap gap-3 mt-3 text-xs text-gray-500 justify-center">
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full inline-block" style="background:#238e3a;"></span>2026年</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full inline-block" style="background:#1d6fa3;"></span>2027年</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full inline-block" style="background:#d97706;"></span>2028年以降</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full inline-block bg-gray-400"></span>未定</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full inline-block bg-gray-200"></span>対象なし</span>
                     </div>
                 </div>
 
@@ -2155,19 +2170,53 @@
         var selectedRegion = 'all';  // 地方フィルター
         var selectedPref = null;     // 地図で選択中の都道府県
         var selectedYear = 'all';    // 年度フィルター
+        var searchQuery = '';        // 検索ワード
         var prefCountMap = {};       // 都道府県ごとの件数（フィルター後）
         var mapSvg = null;           // D3 SVG参照（再描画用）
         var currentPage = 1;
         var PAGE_SIZE = 18;
 
+        // 年度カテゴリ判定
+        function getYearCategory(dateStr) {
+            if (!dateStr || dateStr === '未定' || dateStr === '') return '未定';
+            if (dateStr.startsWith('2026')) return '2026';
+            if (dateStr.startsWith('2027')) return '2027';
+            var yr = parseInt(dateStr.substring(0, 4), 10);
+            if (yr >= 2028) return '2028+';
+            return '未定';
+        }
+
+        // 年度カテゴリ → 地図色
+        var YEAR_COLORS = {
+            '2026':  { base: '#238e3a', selected: '#155724' },
+            '2027':  { base: '#1d6fa3', selected: '#1e4e8c' },
+            '2028+': { base: '#d97706', selected: '#92400e' },
+            '未定':  { base: '#9ca3af', selected: '#6b7280' }
+        };
+
+        // 年度カテゴリ → カードのborderクラス / テキストクラス
+        var YEAR_CARD_STYLE = {
+            '2026':  { cls: 'border-l-4', borderColor: '#238e3a', textColor: '#238e3a', label: '2026年' },
+            '2027':  { cls: 'border-l-4', borderColor: '#1d6fa3', textColor: '#1d6fa3', label: '2027年' },
+            '2028+': { cls: 'border-l-4', borderColor: '#d97706', textColor: '#d97706', label: '2028年以降' },
+            '未定':  { cls: 'border-l-4', borderColor: '#9ca3af', textColor: '#6b7280', label: '未定' }
+        };
+
         // -----------------------------------------------
         // ステータス判定・日付フォーマット
         // -----------------------------------------------
         function getStatusClass(status, date) {
+            var cat = getYearCategory(date);
+            var style = YEAR_CARD_STYLE[cat] || YEAR_CARD_STYLE['未定'];
             var today = new Date('2026-04-05');
-            var impl = new Date(date);
-            if (impl <= today) return { cls: 'border-primary', textCls: 'text-primary', label: '実施中' };
-            return { cls: 'border-warm', textCls: 'text-warm', label: '実施予定' };
+            var impl = date && date !== '未定' ? new Date(date) : null;
+            var label = (impl && impl <= today) ? '実施中' : style.label;
+            return {
+                cls: '',
+                borderColor: style.borderColor,
+                textColor: style.textColor,
+                label: label
+            };
         }
 
         function formatDate(dateStr) {
@@ -2178,14 +2227,17 @@
         // フィルタリング（年度 + 地方 + 都道府県の3フィルター）
         // -----------------------------------------------
         function getFilteredMunicipalities() {
+            var q = searchQuery.trim();
             return allMunicipalities.filter(function(m) {
-                var yearMatch = selectedYear === 'all' || m.implementationDate.startsWith(selectedYear);
+                var cat = getYearCategory(m.implementationDate);
+                var yearMatch = selectedYear === 'all' || cat === selectedYear;
                 var regionMatch = selectedRegion === 'all' || (function() {
                     if (selectedRegion === '北海道') return m.prefecture === '北海道';
                     return (REGION_MAP[m.prefecture] || '') === selectedRegion;
                 })();
                 var prefMatch = !selectedPref || m.prefecture === selectedPref;
-                return yearMatch && regionMatch && prefMatch;
+                var searchMatch = !q || m.name.indexOf(q) !== -1 || m.prefecture.indexOf(q) !== -1;
+                return yearMatch && regionMatch && prefMatch && searchMatch;
             });
         }
 
@@ -2214,11 +2266,12 @@
                 if (emptyEl) emptyEl.classList.add('hidden');
                 list.innerHTML = paged.map(function(m) {
                     var s = getStatusClass(m.status, m.implementationDate);
-                    var dateDisp = formatDate(m.implementationDate);
-                    return '<div class="bg-white rounded-xl p-3 border-l-4 ' + s.cls + ' shadow-sm hover:shadow-md transition-shadow">' +
+                    var dateDisp = m.implementationDate && m.implementationDate !== '未定'
+                        ? formatDate(m.implementationDate) : '未定';
+                    return '<div class="bg-white rounded-xl p-3 border-l-4 shadow-sm hover:shadow-md transition-shadow" style="border-left-color:' + s.borderColor + '">' +
                         '<p class="font-bold text-gray-900 text-sm mb-0.5">' + m.name + '</p>' +
                         '<p class="text-xs text-gray-500 mb-1">' + m.prefecture + '</p>' +
-                        '<p class="font-black text-sm ' + s.textCls + '">' + dateDisp + '</p>' +
+                        '<p class="font-black text-sm" style="color:' + s.textColor + '">' + dateDisp + '</p>' +
                         '<a href="' + (m.url || 'https://www.mhlw.go.jp/stf/newpage_45850.html') + '" target="_blank" rel="noopener noreferrer" ' +
                         'class="inline-flex items-center text-xs text-primary hover:underline mt-1">' +
                         '<i class="fas fa-external-link-alt mr-1 text-xs"></i>詳細</a>' +
@@ -2295,17 +2348,31 @@
         function buildPrefCountMap() {
             var map = {};
             allMunicipalities.forEach(function(m) {
-                var yearMatch = selectedYear === 'all' || m.implementationDate.startsWith(selectedYear);
+                var cat = getYearCategory(m.implementationDate);
+                var yearMatch = selectedYear === 'all' || cat === selectedYear;
                 if (yearMatch) {
-                    map[m.prefecture] = (map[m.prefecture] || 0) + 1;
+                    if (!map[m.prefecture]) map[m.prefecture] = { total: 0, categories: {} };
+                    map[m.prefecture].total++;
+                    map[m.prefecture].categories[cat] = (map[m.prefecture].categories[cat] || 0) + 1;
                 }
             });
             return map;
         }
 
         function getPrefFill(prefName) {
-            if (!prefCountMap[prefName]) return '#e5e7eb';
-            return prefName === selectedPref ? '#1a6b2c' : '#238e3a';
+            var data = prefCountMap[prefName];
+            if (!data) return '#e5e7eb';
+            // selectedYearが特定の年度なら対応色、allなら最優先カテゴリ色
+            var cat;
+            if (selectedYear !== 'all') {
+                cat = selectedYear;
+            } else {
+                // 優先度: 2026 > 2027 > 2028+ > 未定
+                var priority = ['2026', '2027', '2028+', '未定'];
+                cat = priority.find(function(c) { return data.categories[c]; }) || '未定';
+            }
+            var colors = YEAR_COLORS[cat] || YEAR_COLORS['未定'];
+            return prefName === selectedPref ? colors.selected : colors.base;
         }
 
         function updateMapColors() {
@@ -2314,7 +2381,8 @@
                 mapSvg.selectAll('path')
                     .attr('fill', function(p) { return getPrefFill(p.properties.nam_ja); })
                     .style('cursor', function(d) {
-                        return prefCountMap[d.properties.nam_ja] ? 'pointer' : 'default';
+                        var data = prefCountMap[d.properties.nam_ja];
+                        return (data && data.total) ? 'pointer' : 'default';
                     });
             }
         }
@@ -2361,15 +2429,22 @@
                         .attr('stroke', '#fff')
                         .attr('stroke-width', 0.5)
                         .style('cursor', function(d) {
-                            return prefCountMap[d.properties.nam_ja] ? 'pointer' : 'default';
+                            var data = prefCountMap[d.properties.nam_ja];
+                            return (data && data.total) ? 'pointer' : 'default';
                         })
                         .on('mouseover', function(event, d) {
                             var name = d.properties.nam_ja;
-                            var count = prefCountMap[name];
-                            if (count) {
-                                d3.select(this).attr('fill', name === selectedPref ? '#155724' : '#1a6b2c');
+                            var data = prefCountMap[name];
+                            if (data) {
+                                var colors = (function() {
+                                    if (selectedYear !== 'all') return YEAR_COLORS[selectedYear] || YEAR_COLORS['未定'];
+                                    var priority = ['2026', '2027', '2028+', '未定'];
+                                    var cat = priority.find(function(c) { return data.categories[c]; }) || '未定';
+                                    return YEAR_COLORS[cat];
+                                })();
+                                d3.select(this).attr('fill', name === selectedPref ? colors.selected : colors.selected);
                                 if (tooltip) {
-                                    tooltip.innerHTML = '<strong>' + name + '</strong><br>' + count + '自治体';
+                                    tooltip.innerHTML = '<strong>' + name + '</strong><br>' + data.total + '自治体';
                                     tooltip.style.display = 'block';
                                 }
                             }
@@ -2388,7 +2463,7 @@
                         })
                         .on('click', function(event, d) {
                             var name = d.properties.nam_ja;
-                            if (!prefCountMap[name]) return;
+                            if (!prefCountMap[name] || !prefCountMap[name].total) return;
                             if (selectedPref === name) {
                                 selectedPref = null;
                                 filterMunicipalitiesByPref(null);
@@ -2433,7 +2508,7 @@
                     var updEl = document.getElementById('municipalities-updated');
                     var updFooterEl = document.getElementById('municipalities-updated-footer');
                     if (totalEl) totalEl.textContent = allMunicipalities.length;
-                    if (prefsEl) prefsEl.textContent = Object.keys(prefCountMap).length;
+                    if (prefsEl) prefsEl.textContent = Object.keys(prefCountMap).filter(function(k) { return prefCountMap[k].total > 0; }).length;
                     if (updEl && data.lastUpdated) updEl.textContent = data.lastUpdated;
                     if (updFooterEl && data.lastUpdated) updFooterEl.textContent = data.lastUpdated;
 
@@ -2495,6 +2570,12 @@
         // -----------------------------------------------
         // 年度フィルター関数（グローバルに公開）
         // -----------------------------------------------
+        window.searchMunicipalities = function(val) {
+            searchQuery = val;
+            currentPage = 1;
+            renderMunicipalities(getFilteredMunicipalities());
+        };
+
         window.setYearFilter = function(year) {
             selectedYear = year;
             currentPage = 1;
