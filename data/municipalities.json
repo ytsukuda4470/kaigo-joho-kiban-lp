@@ -1,0 +1,622 @@
+{
+  "lastUpdated": "2026-04-05",
+  "source": "介護情報基盤ポータル（https://www.kaigo-kiban-portal.jp/assets/pdf/taioujyoukyou.pdf）2026年2月13日更新版",
+  "municipalities": [
+    {
+      "name": "相良村",
+      "prefecture": "熊本県",
+      "implementationDate": "2026-09-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kumamoto",
+      "notes": ""
+    },
+    {
+      "name": "指宿市",
+      "prefecture": "鹿児島県",
+      "implementationDate": "2026-09-17",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kagoshima",
+      "notes": ""
+    },
+    {
+      "name": "七ヶ浜町",
+      "prefecture": "宮城県",
+      "implementationDate": "2026-11-12",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/miyagi",
+      "notes": ""
+    },
+    {
+      "name": "浅川町",
+      "prefecture": "福島県",
+      "implementationDate": "2026-11-12",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/fukushima",
+      "notes": ""
+    },
+    {
+      "name": "安平町",
+      "prefecture": "北海道",
+      "implementationDate": "2026-11-13",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hokkaido",
+      "notes": ""
+    },
+    {
+      "name": "えりも町",
+      "prefecture": "北海道",
+      "implementationDate": "2026-11-13",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hokkaido",
+      "notes": ""
+    },
+    {
+      "name": "新得町",
+      "prefecture": "北海道",
+      "implementationDate": "2026-11-13",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hokkaido",
+      "notes": ""
+    },
+    {
+      "name": "更別村",
+      "prefecture": "北海道",
+      "implementationDate": "2026-11-13",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hokkaido",
+      "notes": ""
+    },
+    {
+      "name": "浜中町",
+      "prefecture": "北海道",
+      "implementationDate": "2026-11-13",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hokkaido",
+      "notes": ""
+    },
+    {
+      "name": "標茶町",
+      "prefecture": "北海道",
+      "implementationDate": "2026-11-13",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hokkaido",
+      "notes": ""
+    },
+    {
+      "name": "別海町",
+      "prefecture": "北海道",
+      "implementationDate": "2026-11-13",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hokkaido",
+      "notes": ""
+    },
+    {
+      "name": "中標津町",
+      "prefecture": "北海道",
+      "implementationDate": "2026-11-13",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hokkaido",
+      "notes": ""
+    },
+    {
+      "name": "幸田町",
+      "prefecture": "愛知県",
+      "implementationDate": "2026-11-13",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/aichi",
+      "notes": ""
+    },
+    {
+      "name": "南阿蘇村",
+      "prefecture": "熊本県",
+      "implementationDate": "2026-11-13",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kumamoto",
+      "notes": ""
+    },
+    {
+      "name": "大洲市",
+      "prefecture": "愛媛県",
+      "implementationDate": "2026-11-19",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/ehime",
+      "notes": ""
+    },
+    {
+      "name": "東温市",
+      "prefecture": "愛媛県",
+      "implementationDate": "2026-11-19",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/ehime",
+      "notes": ""
+    },
+    {
+      "name": "大牟田市",
+      "prefecture": "福岡県",
+      "implementationDate": "2026-11-19",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/fukuoka",
+      "notes": ""
+    },
+    {
+      "name": "みやま市",
+      "prefecture": "福岡県",
+      "implementationDate": "2026-11-19",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/fukuoka",
+      "notes": ""
+    },
+    {
+      "name": "阿蘇市",
+      "prefecture": "熊本県",
+      "implementationDate": "2026-11-19",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kumamoto",
+      "notes": ""
+    },
+    {
+      "name": "江府町",
+      "prefecture": "鳥取県",
+      "implementationDate": "2026-11-20",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/tottori",
+      "notes": ""
+    },
+    {
+      "name": "久万高原町",
+      "prefecture": "愛媛県",
+      "implementationDate": "2026-11-20",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/ehime",
+      "notes": ""
+    },
+    {
+      "name": "内子町",
+      "prefecture": "愛媛県",
+      "implementationDate": "2026-11-20",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/ehime",
+      "notes": ""
+    },
+    {
+      "name": "西原村",
+      "prefecture": "熊本県",
+      "implementationDate": "2026-11-20",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kumamoto",
+      "notes": ""
+    },
+    {
+      "name": "萩市",
+      "prefecture": "山口県",
+      "implementationDate": "2026-11-26",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/yamaguchi",
+      "notes": ""
+    },
+    {
+      "name": "八幡浜市",
+      "prefecture": "愛媛県",
+      "implementationDate": "2026-11-26",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/ehime",
+      "notes": ""
+    },
+    {
+      "name": "飯塚市",
+      "prefecture": "福岡県",
+      "implementationDate": "2026-11-26",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/fukuoka",
+      "notes": ""
+    },
+    {
+      "name": "上天草市",
+      "prefecture": "熊本県",
+      "implementationDate": "2026-11-26",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kumamoto",
+      "notes": ""
+    },
+    {
+      "name": "沖縄市",
+      "prefecture": "沖縄県",
+      "implementationDate": "2026-11-26",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/okinawa",
+      "notes": ""
+    },
+    {
+      "name": "三笠市",
+      "prefecture": "北海道",
+      "implementationDate": "2026-11-27",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hokkaido",
+      "notes": ""
+    },
+    {
+      "name": "寿都町",
+      "prefecture": "北海道",
+      "implementationDate": "2026-11-27",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hokkaido",
+      "notes": ""
+    },
+    {
+      "name": "佐川町",
+      "prefecture": "高知県",
+      "implementationDate": "2026-11-27",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kochi",
+      "notes": ""
+    },
+    {
+      "name": "東彼杵町",
+      "prefecture": "長崎県",
+      "implementationDate": "2026-11-27",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/nagasaki",
+      "notes": ""
+    },
+    {
+      "name": "川棚町",
+      "prefecture": "長崎県",
+      "implementationDate": "2026-11-27",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/nagasaki",
+      "notes": ""
+    },
+    {
+      "name": "佐々町",
+      "prefecture": "長崎県",
+      "implementationDate": "2026-11-27",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/nagasaki",
+      "notes": ""
+    },
+    {
+      "name": "大津町",
+      "prefecture": "熊本県",
+      "implementationDate": "2026-11-27",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kumamoto",
+      "notes": ""
+    },
+    {
+      "name": "広尾町",
+      "prefecture": "北海道",
+      "implementationDate": "2026-12-04",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hokkaido",
+      "notes": ""
+    },
+    {
+      "name": "粟島浦村",
+      "prefecture": "新潟県",
+      "implementationDate": "2026-12-04",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/niigata",
+      "notes": ""
+    },
+    {
+      "name": "波佐見町",
+      "prefecture": "長崎県",
+      "implementationDate": "2026-12-04",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/nagasaki",
+      "notes": ""
+    },
+    {
+      "name": "新上五島町",
+      "prefecture": "長崎県",
+      "implementationDate": "2026-12-04",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/nagasaki",
+      "notes": ""
+    },
+    {
+      "name": "湯前町",
+      "prefecture": "熊本県",
+      "implementationDate": "2026-12-04",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kumamoto",
+      "notes": ""
+    },
+    {
+      "name": "山江村",
+      "prefecture": "熊本県",
+      "implementationDate": "2026-12-04",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kumamoto",
+      "notes": ""
+    },
+    {
+      "name": "球磨村",
+      "prefecture": "熊本県",
+      "implementationDate": "2026-12-04",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kumamoto",
+      "notes": ""
+    },
+    {
+      "name": "肝付町",
+      "prefecture": "鹿児島県",
+      "implementationDate": "2026-12-04",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kagoshima",
+      "notes": ""
+    },
+    {
+      "name": "三次市",
+      "prefecture": "広島県",
+      "implementationDate": "2026-12-03",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hiroshima",
+      "notes": ""
+    },
+    {
+      "name": "加賀市",
+      "prefecture": "石川県",
+      "implementationDate": "2026-12-10",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/ishikawa",
+      "notes": ""
+    },
+    {
+      "name": "大山町",
+      "prefecture": "鳥取県",
+      "implementationDate": "2026-12-10",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/tottori",
+      "notes": ""
+    },
+    {
+      "name": "標津町",
+      "prefecture": "北海道",
+      "implementationDate": "2026-12-11",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hokkaido",
+      "notes": ""
+    },
+    {
+      "name": "羅臼町",
+      "prefecture": "北海道",
+      "implementationDate": "2026-12-11",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hokkaido",
+      "notes": ""
+    },
+    {
+      "name": "雫石町",
+      "prefecture": "岩手県",
+      "implementationDate": "2026-12-11",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/iwate",
+      "notes": ""
+    },
+    {
+      "name": "坂城町",
+      "prefecture": "長野県",
+      "implementationDate": "2026-12-11",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/nagano",
+      "notes": ""
+    },
+    {
+      "name": "つがる市",
+      "prefecture": "青森県",
+      "implementationDate": "2026-12-17",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/aomori",
+      "notes": ""
+    },
+    {
+      "name": "鰺ヶ沢町",
+      "prefecture": "青森県",
+      "implementationDate": "2026-12-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/aomori",
+      "notes": ""
+    },
+    {
+      "name": "深浦町",
+      "prefecture": "青森県",
+      "implementationDate": "2026-12-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/aomori",
+      "notes": ""
+    },
+    {
+      "name": "鶴田町",
+      "prefecture": "青森県",
+      "implementationDate": "2026-12-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/aomori",
+      "notes": ""
+    },
+    {
+      "name": "玉城町",
+      "prefecture": "三重県",
+      "implementationDate": "2026-12-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/mie",
+      "notes": ""
+    },
+    {
+      "name": "度会町",
+      "prefecture": "三重県",
+      "implementationDate": "2026-12-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/mie",
+      "notes": ""
+    },
+    {
+      "name": "大紀町",
+      "prefecture": "三重県",
+      "implementationDate": "2026-12-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/mie",
+      "notes": ""
+    },
+    {
+      "name": "南伊勢町",
+      "prefecture": "三重県",
+      "implementationDate": "2026-12-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/mie",
+      "notes": ""
+    },
+    {
+      "name": "和気町",
+      "prefecture": "岡山県",
+      "implementationDate": "2026-12-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/okayama",
+      "notes": ""
+    },
+    {
+      "name": "西粟倉村",
+      "prefecture": "岡山県",
+      "implementationDate": "2026-12-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/okayama",
+      "notes": ""
+    },
+    {
+      "name": "吉備中央町",
+      "prefecture": "岡山県",
+      "implementationDate": "2026-12-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/okayama",
+      "notes": ""
+    },
+    {
+      "name": "坂町",
+      "prefecture": "広島県",
+      "implementationDate": "2026-12-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hiroshima",
+      "notes": ""
+    },
+    {
+      "name": "北島町",
+      "prefecture": "徳島県",
+      "implementationDate": "2026-12-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/tokushima",
+      "notes": ""
+    },
+    {
+      "name": "土庄町",
+      "prefecture": "香川県",
+      "implementationDate": "2026-12-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kagawa",
+      "notes": ""
+    },
+    {
+      "name": "小豆島町",
+      "prefecture": "香川県",
+      "implementationDate": "2026-12-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kagawa",
+      "notes": ""
+    },
+    {
+      "name": "美里町",
+      "prefecture": "熊本県",
+      "implementationDate": "2026-12-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kumamoto",
+      "notes": ""
+    },
+    {
+      "name": "長島町",
+      "prefecture": "鹿児島県",
+      "implementationDate": "2026-12-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kagoshima",
+      "notes": ""
+    },
+    {
+      "name": "天城町",
+      "prefecture": "鹿児島県",
+      "implementationDate": "2026-12-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kagoshima",
+      "notes": ""
+    },
+    {
+      "name": "三原市",
+      "prefecture": "広島県",
+      "implementationDate": "2026-12-23",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hiroshima",
+      "notes": ""
+    },
+    {
+      "name": "松阪市",
+      "prefecture": "三重県",
+      "implementationDate": "2026-12-24",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/mie",
+      "notes": ""
+    },
+    {
+      "name": "鳥羽市",
+      "prefecture": "三重県",
+      "implementationDate": "2026-12-24",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/mie",
+      "notes": ""
+    },
+    {
+      "name": "境港市",
+      "prefecture": "鳥取県",
+      "implementationDate": "2026-12-24",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/tottori",
+      "notes": ""
+    },
+    {
+      "name": "浅口市",
+      "prefecture": "岡山県",
+      "implementationDate": "2026-12-24",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/okayama",
+      "notes": ""
+    },
+    {
+      "name": "蔵王町",
+      "prefecture": "宮城県",
+      "implementationDate": "2026-12-25",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/miyagi",
+      "notes": ""
+    },
+    {
+      "name": "上小阿仁村",
+      "prefecture": "秋田県",
+      "implementationDate": "2026-12-25",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/akita",
+      "notes": ""
+    },
+    {
+      "name": "琴浦町",
+      "prefecture": "鳥取県",
+      "implementationDate": "2026-12-25",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/tottori",
+      "notes": ""
+    },
+    {
+      "name": "日南町",
+      "prefecture": "鳥取県",
+      "implementationDate": "2026-12-25",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/tottori",
+      "notes": ""
+    }
+  ]
+}

@@ -17,3 +17,5 @@ firebase-app/functions/node_modules/
 
 # Private materials
 他社資料/
+kaigo-mobile/GoogleService-Info.plist
+kaigo-mobile/google-services.json
