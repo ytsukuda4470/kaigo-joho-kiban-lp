@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- 背景 -->
+  <rect width="512" height="512" rx="72" fill="#1a365d"/>
+
+  <!-- 人物 -->
+  <circle cx="256" cy="130" r="46" fill="#60a5fa"/>
+  <path d="M168 228 Q168 182 256 182 Q344 182 344 228 L344 252 Q344 272 320 272 L192 272 Q168 272 168 252 Z" fill="#60a5fa"/>
+
+  <!-- 左右ノード -->
+  <circle cx="88" cy="216" r="24" fill="#34d399"/>
+  <line x1="112" y1="216" x2="168" y2="228" stroke="#34d399" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="424" cy="216" r="24" fill="#34d399"/>
+  <line x1="344" y1="228" x2="400" y2="216" stroke="#34d399" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- 区切り線 -->
+  <line x1="64" y1="310" x2="448" y2="310" stroke="#2d5a8e" stroke-width="2"/>
+
+  <!-- 基盤テキスト（大きく中央） -->
+  <text x="256" y="448" font-family="'Hiragino Sans', 'Noto Sans JP', Arial, sans-serif" font-weight="900" font-size="148" fill="#ffffff" text-anchor="middle">基盤</text>
+</svg>

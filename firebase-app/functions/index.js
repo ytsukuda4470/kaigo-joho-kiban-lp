@@ -96,22 +96,45 @@ exports.receiveInquiry = onRequest(
     // Google Chat通知
     const webhookUrl = GCHAT_WEBHOOK_URL.value();
     if (webhookUrl) {
-      const chatMsg =
-        `📩 *新規問い合わせが届きました*\n` +
-        `法人名: ${inquiryData.corp}\n` +
-        `事業所名: ${inquiryData.office}\n` +
-        `担当者: ${inquiryData.name}（${inquiryData.role}）\n` +
-        `都道府県: ${inquiryData.prefecture}\n` +
-        `メール: ${inquiryData.email}\n` +
-        `電話: ${inquiryData.phone}\n` +
-        `ご関心: ${inquiryData.interest}\n` +
-        `内容: ${inquiryData.message.slice(0, 200)}\n` +
-        `🔗 管理サイト: https://kaigo-kiban-pm.web.app/`;
+      const cardPayload = {
+        cardsV2: [{
+          cardId: `inquiry-${docRef.id}`,
+          card: {
+            header: {
+              title: '新規問い合わせが届きました',
+              subtitle: '介護情報基盤 導入支援サービス',
+              imageUrl: 'https://kaigo-lp-279.web.app/assets/gchat-icon.svg',
+              imageType: 'SQUARE',
+            },
+            sections: [{
+              widgets: [
+                { decoratedText: { topLabel: '法人名', text: inquiryData.corp } },
+                { decoratedText: { topLabel: '事業所名', text: inquiryData.office || '—' } },
+                { decoratedText: { topLabel: '担当者', text: `${inquiryData.name}（${inquiryData.role}）` } },
+                { decoratedText: { topLabel: '都道府県', text: inquiryData.prefecture } },
+                { decoratedText: { topLabel: 'メール', text: inquiryData.email } },
+                { decoratedText: { topLabel: '電話', text: inquiryData.phone || '—' } },
+                { decoratedText: { topLabel: 'ご関心', text: Array.isArray(inquiryData.interest) ? inquiryData.interest.join('、') : inquiryData.interest } },
+                { decoratedText: { topLabel: 'お問い合わせ内容', text: inquiryData.message ? inquiryData.message.slice(0, 200) : '—' } },
+              ],
+            }, {
+              widgets: [{
+                buttonList: {
+                  buttons: [{
+                    text: '管理サイトで確認する',
+                    onClick: { openLink: { url: `https://kaigo-kiban-pm.web.app/` } },
+                  }],
+                },
+              }],
+            }],
+          },
+        }],
+      };
       try {
         await fetch(webhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: chatMsg }),
+          body: JSON.stringify(cardPayload),
         });
       } catch (chatErr) {
         console.error('Google Chat notification failed:', chatErr.message);
