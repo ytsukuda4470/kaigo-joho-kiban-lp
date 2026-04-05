@@ -1,21 +1,21 @@
 {
   "lastUpdated": "2026-04-05",
-  "source": "介護情報基盤ポータル（https://www.kaigo-kiban-portal.jp/assets/pdf/taioujyoukyou.pdf）2026年2月13日更新版",
+  "source": "介護情報基盤ポータル（https://www.kaigo-kiban-portal.jp/assets/pdf/taioujyoukyou.pdf）",
   "municipalities": [
-    {
-      "name": "相良村",
-      "prefecture": "熊本県",
-      "implementationDate": "2026-09-18",
-      "status": "実施予定",
-      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kumamoto",
-      "notes": ""
-    },
     {
       "name": "指宿市",
       "prefecture": "鹿児島県",
       "implementationDate": "2026-09-17",
       "status": "実施予定",
       "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kagoshima",
+      "notes": ""
+    },
+    {
+      "name": "相良村",
+      "prefecture": "熊本県",
+      "implementationDate": "2026-09-18",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kumamoto",
       "notes": ""
     },
     {
@@ -283,6 +283,14 @@
       "notes": ""
     },
     {
+      "name": "三次市",
+      "prefecture": "広島県",
+      "implementationDate": "2026-12-03",
+      "status": "実施予定",
+      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hiroshima",
+      "notes": ""
+    },
+    {
       "name": "広尾町",
       "prefecture": "北海道",
       "implementationDate": "2026-12-04",
@@ -344,14 +352,6 @@
       "implementationDate": "2026-12-04",
       "status": "実施予定",
       "url": "https://www.kaigo-kiban-portal.jp/introduction-map/kagoshima",
-      "notes": ""
-    },
-    {
-      "name": "三次市",
-      "prefecture": "広島県",
-      "implementationDate": "2026-12-03",
-      "status": "実施予定",
-      "url": "https://www.kaigo-kiban-portal.jp/introduction-map/hiroshima",
       "notes": ""
     },
     {
