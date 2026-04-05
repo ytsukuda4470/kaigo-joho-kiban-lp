@@ -33,6 +33,106 @@ function requireAuth(request) {
   if (!request.auth) throw new HttpsError('unauthenticated', '認証が必要です');
 }
 
+// ── LP フォーム受信 → Firestore保存 + Google Chat通知 ──────
+// CORS対応のHTTPエンドポイント（認証不要）
+
+exports.receiveInquiry = onRequest(
+  {
+    region: REGION,
+    secrets: [GCHAT_WEBHOOK_URL, GAS_SECRET],
+    cors: [
+      'https://kaigo-lp-279.web.app',
+      'https://ytsukuda4470.github.io',
+      /localhost/,
+    ],
+  },
+  async (req, res) => {
+    if (req.method !== 'POST') {
+      res.status(405).json({ success: false, error: 'Method not allowed' });
+      return;
+    }
+
+    let payload;
+    try {
+      payload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    } catch (_) {
+      res.status(400).json({ success: false, error: 'Invalid JSON' });
+      return;
+    }
+
+    if (!payload || !payload.email) {
+      res.status(400).json({ success: false, error: 'メールアドレスは必須です' });
+      return;
+    }
+
+    const now = new Date();
+    const jstNow = now.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
+
+    const inquiryData = {
+      email:           payload.email           || '',
+      corp:            payload.corp            || '',
+      office:          payload.office          || '',
+      zip:             payload.zip             || '',
+      prefecture:      payload.prefecture      || '',
+      phone:           payload.phone           || '',
+      name:            payload.name            || '',
+      role:            payload.role            || '',
+      officeCount:     payload.officeCount     || '',
+      careplanLinkage: payload.careplanLinkage || '',
+      densou:          payload.densou          || '',
+      interest:        payload.interest        || '',
+      message:         payload.message         || '',
+      privacy:         payload.privacy         || '',
+      status:          '新規',
+      staff:           '',
+      timestamp:       payload.timestamp       || jstNow,
+      createdAt:       FieldValue.serverTimestamp(),
+      updatedAt:       FieldValue.serverTimestamp(),
+    };
+
+    // Firestoreに保存
+    const docRef = await db.collection('inquiries').add(inquiryData);
+
+    // Google Chat通知
+    const webhookUrl = GCHAT_WEBHOOK_URL.value();
+    if (webhookUrl) {
+      const chatMsg =
+        `📩 *新規問い合わせが届きました*\n` +
+        `法人名: ${inquiryData.corp}\n` +
+        `事業所名: ${inquiryData.office}\n` +
+        `担当者: ${inquiryData.name}（${inquiryData.role}）\n` +
+        `都道府県: ${inquiryData.prefecture}\n` +
+        `メール: ${inquiryData.email}\n` +
+        `電話: ${inquiryData.phone}\n` +
+        `ご関心: ${inquiryData.interest}\n` +
+        `内容: ${inquiryData.message.slice(0, 200)}\n` +
+        `🔗 管理サイト: https://kaigo-kiban-pm.web.app/`;
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: chatMsg }),
+        });
+      } catch (chatErr) {
+        console.error('Google Chat notification failed:', chatErr.message);
+      }
+    }
+
+    // GAS（スプレッドシートバックアップ）
+    try {
+      await fetch(GAS_WEBAPP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload),
+      });
+    } catch (gasErr) {
+      console.warn('GAS backup failed:', gasErr.message);
+    }
+
+    res.json({ success: true, id: docRef.id });
+  }
+);
+
 // ── メール送信 ────────────────────────────────────────────
 // GAS ウェブアプリ（GmailApp）経由でメールを送信します。
 // GMAIL_USER / GMAIL_APP_PASSWORD は不要になりました。
