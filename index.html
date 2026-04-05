@@ -185,12 +185,18 @@
         <div class="hero-orb hero-orb-b"></div>
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
-            <!-- 稼働開始バッジ -->
+            <!-- 稼働開始バッジ + 稼働日数カウンター -->
             <div class="reveal text-center mb-6">
                 <span class="section-badge" style="font-size: 1rem; padding: 0.5rem 1.2rem; background: linear-gradient(135deg, rgba(61,139,94,0.1), rgba(61,139,94,0.05)); border-color: rgba(61,139,94,0.3);">
                     <i class="fas fa-circle-check mr-1 text-primary"></i>
                     <strong class="text-primary">2026年4月1日 介護情報基盤 稼働開始済み</strong>
                 </span>
+                <div class="mt-3">
+                    <span id="days-since-launch" class="inline-flex items-center gap-2 bg-white border border-primary/20 text-primary text-sm font-bold px-5 py-2 rounded-full shadow-sm">
+                        <i class="fas fa-rocket text-accent"></i>
+                        <span>稼働開始から <strong id="days-count" class="text-accent text-base">0</strong> 日</span>
+                    </span>
+                </div>
             </div>
 
             <div class="text-center mb-12">
@@ -392,11 +398,11 @@
                 </div>
                 <div class="reveal reveal-delay-3 card-hover flex items-start bg-red-50 p-5 rounded-xl shadow-sm border-2 border-red-200">
                     <div class="flex-shrink-0 mt-1 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                        <i class="fas fa-calendar-times text-red-500"></i>
+                        <i class="fas fa-exclamation-triangle text-red-500"></i>
                     </div>
                     <div class="ml-3">
-                        <h3 class="text-base font-rounded font-bold text-red-700 mb-1">このまま放置すると…</h3>
-                        <p class="text-sm text-red-600">2027年1月の適合基準日に間に合わず、業務に支障が出る可能性があります</p>
+                        <h3 class="text-base font-rounded font-bold text-red-700 mb-1">放置すると間に合わない</h3>
+                        <p class="text-sm text-red-600">2027年1月の適合基準日に向け、全国本格運用が進んでいます。準備が遅れると対応が困難になる可能性があります。</p>
                     </div>
                 </div>
             </div>
@@ -648,25 +654,38 @@
             <div class="reveal bg-accent/5 border border-accent/20 rounded-2xl p-5 mb-8">
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <div>
+                        <div class="mb-2">
+                            <span class="inline-block bg-gray-100 border border-gray-300 text-gray-600 text-xs font-bold px-3 py-1 rounded-full">
+                                <i class="fas fa-info-circle mr-1"></i>最新情報をご確認ください
+                            </span>
+                        </div>
                         <h3 class="font-bold text-gray-900 mb-1"><i class="fas fa-coins text-accent mr-2"></i>介護情報基盤の導入に使える助成金</h3>
-                        <p class="text-sm text-gray-600">令和7年度の申請受付は終了。令和8年度の助成金は<a href="https://www.kaigo-kiban-portal.jp/" target="_blank" rel="noopener noreferrer" class="text-primary font-bold hover:underline">ポータル</a>で案内予定です。</p>
+                        <p class="text-sm text-gray-600 mb-1">令和7年度の助成金申請受付は<strong>2026年3月13日に終了</strong>しました。</p>
+                        <p class="text-sm text-gray-600">令和8年度の助成金については、<a href="https://www.mhlw.go.jp/stf/newpage_45850.html" target="_blank" rel="noopener noreferrer" class="text-primary font-bold hover:underline">介護情報基盤ポータル</a>で改めて案内される予定です。</p>
                     </div>
                     <div class="flex gap-3 text-center">
                         <div class="bg-white px-4 py-2 rounded-xl border border-gray-200">
+                            <div class="text-xs text-gray-400 font-bold mb-0.5">令和7年度実績</div>
                             <div class="text-lg font-black text-accent">最大6.4<span class="text-sm">万円</span></div>
                             <div class="text-xs text-gray-500">訪問・通所系</div>
                         </div>
                         <div class="bg-white px-4 py-2 rounded-xl border border-gray-200">
+                            <div class="text-xs text-gray-400 font-bold mb-0.5">令和7年度実績</div>
                             <div class="text-lg font-black text-accent">最大5.5<span class="text-sm">万円</span></div>
                             <div class="text-xs text-gray-500">居住・入所系</div>
                         </div>
                         <div class="bg-white px-4 py-2 rounded-xl border border-gray-200">
+                            <div class="text-xs text-gray-400 font-bold mb-0.5">令和7年度実績</div>
                             <div class="text-lg font-black text-accent">最大4.2<span class="text-sm">万円</span></div>
                             <div class="text-xs text-gray-500">その他</div>
                         </div>
                     </div>
                 </div>
-                <p class="text-xs text-gray-400 mt-2">※ 上記は令和7年度の助成実績です。</p>
+                <div class="mt-3 flex flex-wrap gap-3 text-xs">
+                    <a href="https://www.mhlw.go.jp/stf/newpage_45850.html" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-primary hover:underline bg-white px-3 py-1.5 rounded-full border border-gray-200"><i class="fas fa-external-link-alt mr-1.5"></i>介護情報基盤ポータル（厚生労働省）</a>
+                    <a href="https://www.mhlw.go.jp/content/001330422.pdf" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-primary hover:underline bg-white px-3 py-1.5 rounded-full border border-gray-200"><i class="fas fa-file-pdf mr-1.5 text-red-400"></i>助成金手引きPDF（厚生労働省）</a>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">※令和7年度実績。令和8年度以降の助成金については最新情報をご確認ください。</p>
             </div>
 
             <!-- 料金カード3枚 -->
@@ -674,6 +693,7 @@
                 <!-- ベーシック -->
                 <div class="reveal card-hover bg-white rounded-2xl p-6 border border-gray-200 shadow-sm flex flex-col">
                     <div class="text-center mb-4">
+                        <span class="inline-block bg-warm/10 text-warm text-xs font-bold px-3 py-1 rounded-full mb-2 border border-warm/20"><i class="fas fa-coins mr-1"></i>助成金活用で実質負担を大幅軽減</span>
                         <h3 class="text-lg font-rounded font-bold text-gray-900">ベーシック</h3>
                         <p class="text-sm text-gray-500">リーダー1台 / 1端末</p>
                     </div>
@@ -695,6 +715,7 @@
                 <!-- スタンダード -->
                 <div class="reveal reveal-delay-1 card-hover bg-white rounded-2xl p-6 border border-gray-200 shadow-sm flex flex-col">
                     <div class="text-center mb-4">
+                        <span class="inline-block bg-warm/10 text-warm text-xs font-bold px-3 py-1 rounded-full mb-2 border border-warm/20"><i class="fas fa-coins mr-1"></i>助成金活用で実質負担を大幅軽減</span>
                         <h3 class="text-lg font-rounded font-bold text-gray-900">スタンダード</h3>
                         <p class="text-sm text-gray-500">リーダー2台 / 2端末</p>
                     </div>
@@ -717,6 +738,7 @@
                 <div class="reveal reveal-delay-2 card-hover bg-white rounded-2xl p-6 border-2 border-accent shadow-md flex flex-col relative">
                     <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-white text-xs font-bold px-4 py-1 rounded-full shadow">おすすめ</div>
                     <div class="text-center mb-4 mt-2">
+                        <span class="inline-block bg-accent/10 text-accent text-xs font-bold px-3 py-1 rounded-full mb-2 border border-accent/20"><i class="fas fa-coins mr-1"></i>助成金活用で実質負担を大幅軽減</span>
                         <h3 class="text-lg font-rounded font-bold text-gray-900">フルサポート</h3>
                         <p class="text-sm text-gray-500">リーダー3台 / 3端末</p>
                     </div>
@@ -763,6 +785,22 @@
                         </div>
                     </div>
                 </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         CTA バナー（料金プランの直後）
+    ============================================ -->
+    <section class="py-10 bg-white border-b border-gray-100">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center reveal">
+            <div class="bg-gradient-to-r from-primary to-[#3080C0] rounded-2xl p-6 md:p-8 shadow-lg text-white">
+                <p class="text-lg md:text-xl font-rounded font-bold mb-2">まずは無料でご相談ください</p>
+                <p class="text-sm text-blue-100 mb-5">料金・プラン・助成金のご不明点もお気軽にどうぞ。専任スタッフが丁寧にご案内します。</p>
+                <a href="#contact" onclick="smoothScroll('contact'); return false;"
+                   class="inline-block btn-cta text-white font-bold text-base px-10 py-4 rounded-full shadow">
+                    <i class="fas fa-comments mr-2"></i>今すぐ相談する
+                </a>
             </div>
         </div>
     </section>
@@ -1205,6 +1243,22 @@
     </section>
 
     <!-- ============================================
+         CTA バナー（カードリーダーセクションの直後）
+    ============================================ -->
+    <section class="py-10 bg-white border-t border-gray-100">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center reveal">
+            <div class="bg-gradient-to-r from-accent to-[#C55F10] rounded-2xl p-6 md:p-8 shadow-lg text-white">
+                <p class="text-lg md:text-xl font-rounded font-bold mb-2">カードリーダー選びで迷ったらご相談ください</p>
+                <p class="text-sm text-orange-100 mb-5">事業所の環境・機器に合った最適な機種をご提案します。無料でアドバイスします。</p>
+                <a href="#contact" onclick="smoothScroll('contact'); return false;"
+                   class="inline-block bg-white text-accent font-bold text-base px-10 py-4 rounded-full shadow hover:bg-orange-50 transition">
+                    <i class="fas fa-comments mr-2"></i>今すぐ相談する
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
          8. 導入フロー（4ステップに簡略化）
     ============================================ -->
     <section id="flow" class="py-16 bg-white">
@@ -1307,29 +1361,29 @@
     </section>
 
     <!-- ============================================
-         10. FAQ（4問に絞る）
+         10. FAQ（6問）
     ============================================ -->
-    <section id="faq" class="py-16 bg-white">
+    <section id="faq" class="py-16 bg-gray-50">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="reveal text-center mb-8">
                 <span class="section-badge"><i class="fas fa-question-circle mr-1 text-accent"></i>FAQ</span>
                 <h2 class="text-2xl sm:text-3xl font-rounded font-bold text-gray-900 mb-3">よくあるご質問</h2>
             </div>
             <div class="reveal space-y-3">
-                <details class="group bg-[#F5F3EF] rounded-xl border border-gray-200 overflow-hidden">
-                    <summary class="flex justify-between items-center cursor-pointer list-none p-4 hover:bg-white/50 transition-colors">
+                <details class="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <summary class="flex justify-between items-center cursor-pointer list-none p-4 hover:bg-gray-50 transition-colors">
                         <span class="flex items-center text-sm font-bold text-gray-900">
                             <span class="flex-shrink-0 w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold mr-3">Q</span>
-                            「介護情報基盤」って何ですか？
+                            介護情報基盤って何ですか？
                         </span>
                         <span class="transition group-open:rotate-180 flex-shrink-0 ml-3"><i class="fas fa-chevron-down text-gray-400"></i></span>
                     </summary>
                     <div class="px-4 pb-4 pt-0 text-gray-600 border-t border-gray-200">
-                        <p class="pt-3 text-sm leading-relaxed">2026年4月1日に稼働を開始した、介護・医療の情報をオンラインで安全に共有するための国の仕組みです。これまで紙やFAXで行われていたケアプランや要介護認定情報のやり取りがデジタル化されます。ケアプランデータ連携システムも統合予定で、業務時間を約1/3に削減できます。</p>
+                        <p class="pt-3 text-sm leading-relaxed">介護情報基盤は、厚生労働省が推進するケアプランデータ連携システムです。ケアマネジャーと介護サービス事業所の間でケアプランを電子的にやり取りすることで、業務効率化・ペーパーレス化を実現します。</p>
                     </div>
                 </details>
-                <details class="group bg-[#F5F3EF] rounded-xl border border-gray-200 overflow-hidden">
-                    <summary class="flex justify-between items-center cursor-pointer list-none p-4 hover:bg-white/50 transition-colors">
+                <details class="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <summary class="flex justify-between items-center cursor-pointer list-none p-4 hover:bg-gray-50 transition-colors">
                         <span class="flex items-center text-sm font-bold text-gray-900">
                             <span class="flex-shrink-0 w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold mr-3">Q</span>
                             助成金はまだ申請できますか？
@@ -1337,11 +1391,11 @@
                         <span class="transition group-open:rotate-180 flex-shrink-0 ml-3"><i class="fas fa-chevron-down text-gray-400"></i></span>
                     </summary>
                     <div class="px-4 pb-4 pt-0 text-gray-600 border-t border-gray-200">
-                        <p class="pt-3 text-sm leading-relaxed">令和7年度の助成金申請受付は2026年3月13日に終了しました。令和8年度の助成金については、<a href="https://www.kaigo-kiban-portal.jp/" target="_blank" rel="noopener noreferrer" class="text-primary font-bold hover:underline">介護情報基盤ポータルサイト</a>で改めて案内される予定です。最新情報が分かり次第、当社からもお知らせいたします。</p>
+                        <p class="pt-3 text-sm leading-relaxed">令和7年度の助成金申請受付は2026年3月13日に終了しました。令和8年度以降の助成金については、<a href="https://www.kaigo-kiban-portal.jp/" target="_blank" rel="noopener noreferrer" class="text-primary font-bold hover:underline">介護情報基盤ポータルサイト</a>で順次案内される予定ですので、最新情報をご確認ください。</p>
                     </div>
                 </details>
-                <details class="group bg-[#F5F3EF] rounded-xl border border-gray-200 overflow-hidden">
-                    <summary class="flex justify-between items-center cursor-pointer list-none p-4 hover:bg-white/50 transition-colors">
+                <details class="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <summary class="flex justify-between items-center cursor-pointer list-none p-4 hover:bg-gray-50 transition-colors">
                         <span class="flex items-center text-sm font-bold text-gray-900">
                             <span class="flex-shrink-0 w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold mr-3">Q</span>
                             どの介護ソフトでも対応できますか？
@@ -1349,11 +1403,23 @@
                         <span class="transition group-open:rotate-180 flex-shrink-0 ml-3"><i class="fas fa-chevron-down text-gray-400"></i></span>
                     </summary>
                     <div class="px-4 pb-4 pt-0 text-gray-600 border-t border-gray-200">
-                        <p class="pt-3 text-sm leading-relaxed">はい、主要な介護ソフトに幅広く対応しています。お使いの介護ソフトの名前をお伝えいただければ、事前に対応状況を確認いたします。訪問エリア外の事業所様にも<strong>オンライン（Zoom・電話）で全国対応</strong>しておりますので、安心してご相談ください。</p>
+                        <p class="pt-3 text-sm leading-relaxed">主要な介護ソフトウェアに対応しています。詳細はお気軽にご相談ください。導入前に対応状況を確認させていただきます。</p>
                     </div>
                 </details>
-                <details class="group bg-[#F5F3EF] rounded-xl border border-gray-200 overflow-hidden">
-                    <summary class="flex justify-between items-center cursor-pointer list-none p-4 hover:bg-white/50 transition-colors">
+                <details class="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <summary class="flex justify-between items-center cursor-pointer list-none p-4 hover:bg-gray-50 transition-colors">
+                        <span class="flex items-center text-sm font-bold text-gray-900">
+                            <span class="flex-shrink-0 w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold mr-3">Q</span>
+                            訪問エリア外ですが対応できますか？
+                        </span>
+                        <span class="transition group-open:rotate-180 flex-shrink-0 ml-3"><i class="fas fa-chevron-down text-gray-400"></i></span>
+                    </summary>
+                    <div class="px-4 pb-4 pt-0 text-gray-600 border-t border-gray-200">
+                        <p class="pt-3 text-sm leading-relaxed">リモートでのサポートも対応しております。全国どこからでもお問い合わせください。まずはオンライン相談からお気軽にどうぞ。</p>
+                    </div>
+                </details>
+                <details class="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <summary class="flex justify-between items-center cursor-pointer list-none p-4 hover:bg-gray-50 transition-colors">
                         <span class="flex items-center text-sm font-bold text-gray-900">
                             <span class="flex-shrink-0 w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold mr-3">Q</span>
                             導入にどれくらい時間がかかりますか？
@@ -1361,7 +1427,19 @@
                         <span class="transition group-open:rotate-180 flex-shrink-0 ml-3"><i class="fas fa-chevron-down text-gray-400"></i></span>
                     </summary>
                     <div class="px-4 pb-4 pt-0 text-gray-600 border-t border-gray-200">
-                        <p class="pt-3 text-sm leading-relaxed">基本的な導入設定は<strong>数日〜1週間程度</strong>で完了します。ID・パスワードの確認など事前準備が整っていれば、さらにスムーズに進められます。カードリーダーの選び方もご提案しますのでお気軽にどうぞ。</p>
+                        <p class="pt-3 text-sm leading-relaxed">標準的な導入期間は2〜4週間程度です。ソフトウェアの設定・カードリーダーの設置・スタッフへの操作説明まで一括サポートします。</p>
+                    </div>
+                </details>
+                <details class="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <summary class="flex justify-between items-center cursor-pointer list-none p-4 hover:bg-gray-50 transition-colors">
+                        <span class="flex items-center text-sm font-bold text-gray-900">
+                            <span class="flex-shrink-0 w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold mr-3">Q</span>
+                            カードリーダーはどれを選べばいいですか？
+                        </span>
+                        <span class="transition group-open:rotate-180 flex-shrink-0 ml-3"><i class="fas fa-chevron-down text-gray-400"></i></span>
+                    </summary>
+                    <div class="px-4 pb-4 pt-0 text-gray-600 border-t border-gray-200">
+                        <p class="pt-3 text-sm leading-relaxed">利用する介護ソフトや業務環境によって最適な機種が異なります。ご相談いただければ、貴事業所に合ったカードリーダーをご提案します。</p>
                     </div>
                 </details>
             </div>
@@ -1656,6 +1734,23 @@
          JavaScript
     ============================================ -->
     <script>
+    // 稼働開始からの日数カウンター
+    (function() {
+        var launchDate = new Date('2026-04-01T00:00:00+09:00');
+        var today = new Date();
+        var diffMs = today - launchDate;
+        var diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        var daysCountEl = document.getElementById('days-count');
+        if (daysCountEl) {
+            if (diffDays >= 0) {
+                daysCountEl.textContent = diffDays;
+            } else {
+                var badge = document.getElementById('days-since-launch');
+                if (badge) badge.style.display = 'none';
+            }
+        }
+    })();
+
     // プログレスバー
     var progressBar = document.getElementById('scroll-progress');
     window.addEventListener('scroll', function() {
