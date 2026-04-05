@@ -971,10 +971,10 @@
                             <span class="inline-block w-2 h-2 rounded-full mr-1" style="background:#16a34a;"></span>2026年
                         </button>
                         <button onclick="setYearFilter('2027')" id="year-tab-2027" class="year-tab px-3 py-1.5 rounded-lg text-sm font-medium transition-all text-gray-500 hover:text-gray-700">
-                            <span class="inline-block w-2 h-2 rounded-full mr-1" style="background:#ea580c;"></span>2027年
+                            <span class="inline-block w-2 h-2 rounded-full mr-1" style="background:#2563eb;"></span>2027年
                         </button>
                         <button onclick="setYearFilter('2028+')" id="year-tab-2028+" class="year-tab px-3 py-1.5 rounded-lg text-sm font-medium transition-all text-gray-500 hover:text-gray-700">
-                            <span class="inline-block w-2 h-2 rounded-full mr-1" style="background:#7c3aed;"></span>2028年以降
+                            <span class="inline-block w-2 h-2 rounded-full mr-1" style="background:#4f46e5;"></span>2028年以降
                         </button>
                         <button onclick="setYearFilter('未定')" id="year-tab-未定" class="year-tab px-3 py-1.5 rounded-lg text-sm font-medium transition-all text-gray-500 hover:text-gray-700">
                             <span class="inline-block w-2 h-2 rounded-full mr-1 bg-gray-400"></span>未定
@@ -1046,8 +1046,8 @@
                     <!-- 凡例 -->
                     <div class="flex flex-wrap gap-3 mt-3 text-xs text-gray-500 justify-center">
                         <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full inline-block" style="background:#16a34a;"></span>2026年</span>
-                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full inline-block" style="background:#ea580c;"></span>2027年</span>
-                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full inline-block" style="background:#7c3aed;"></span>2028年以降</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full inline-block" style="background:#2563eb;"></span>2027年</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full inline-block" style="background:#4f46e5;"></span>2028年以降</span>
                         <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full inline-block bg-gray-400"></span>未定</span>
                         <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full inline-block bg-gray-200"></span>対象なし</span>
                     </div>
@@ -2190,16 +2190,16 @@
         // 年度カテゴリ → 地図色
         var YEAR_COLORS = {
             '2026':  { base: '#16a34a', selected: '#15803d' },
-            '2027':  { base: '#ea580c', selected: '#c2410c' },
-            '2028+': { base: '#7c3aed', selected: '#6d28d9' },
+            '2027':  { base: '#2563eb', selected: '#1d4ed8' },
+            '2028+': { base: '#4f46e5', selected: '#4338ca' },
             '未定':  { base: '#9ca3af', selected: '#6b7280' }
         };
 
         // 年度カテゴリ → カードのborderクラス / テキストクラス
         var YEAR_CARD_STYLE = {
             '2026':  { cls: 'border-l-4', borderColor: '#16a34a', textColor: '#16a34a', label: '2026年' },
-            '2027':  { cls: 'border-l-4', borderColor: '#ea580c', textColor: '#ea580c', label: '2027年' },
-            '2028+': { cls: 'border-l-4', borderColor: '#7c3aed', textColor: '#7c3aed', label: '2028年以降' },
+            '2027':  { cls: 'border-l-4', borderColor: '#2563eb', textColor: '#2563eb', label: '2027年' },
+            '2028+': { cls: 'border-l-4', borderColor: '#4f46e5', textColor: '#4f46e5', label: '2028年以降' },
             '未定':  { cls: 'border-l-4', borderColor: '#9ca3af', textColor: '#6b7280', label: '未定' }
         };
 
