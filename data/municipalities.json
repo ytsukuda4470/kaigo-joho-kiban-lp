@@ -617,6 +617,286 @@
       "status": "実施予定",
       "url": "https://www.kaigo-kiban-portal.jp/introduction-map/tottori",
       "notes": ""
+    },
+    {
+      "name": "函館市",
+      "prefecture": "北海道",
+      "implementationDate": "2027-04-17",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "盛岡市",
+      "prefecture": "岩手県",
+      "implementationDate": "2027-04-17",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "新潟市",
+      "prefecture": "新潟県",
+      "implementationDate": "2027-04-15",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "福岡市",
+      "prefecture": "福岡県",
+      "implementationDate": "2027-04-15",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "青森市",
+      "prefecture": "青森県",
+      "implementationDate": "2027-05-14",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "山形市",
+      "prefecture": "山形県",
+      "implementationDate": "2027-05-15",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "神戸市",
+      "prefecture": "兵庫県",
+      "implementationDate": "2027-05-19",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "静岡市",
+      "prefecture": "静岡県",
+      "implementationDate": "2027-05-19",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "旭川市",
+      "prefecture": "北海道",
+      "implementationDate": "2027-06-18",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "秋田市",
+      "prefecture": "秋田県",
+      "implementationDate": "2027-06-17",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "長野市",
+      "prefecture": "長野県",
+      "implementationDate": "2027-06-17",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "京都市",
+      "prefecture": "京都府",
+      "implementationDate": "2027-06-16",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "仙台市",
+      "prefecture": "宮城県",
+      "implementationDate": "2027-07-17",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "弘前市",
+      "prefecture": "青森県",
+      "implementationDate": "2027-07-16",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "名古屋市",
+      "prefecture": "愛知県",
+      "implementationDate": "2027-07-15",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "広島市",
+      "prefecture": "広島県",
+      "implementationDate": "2027-07-14",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "釧路市",
+      "prefecture": "北海道",
+      "implementationDate": "2027-08-14",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "横手市",
+      "prefecture": "秋田県",
+      "implementationDate": "2027-08-19",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "長岡市",
+      "prefecture": "新潟県",
+      "implementationDate": "2027-08-19",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "北九州市",
+      "prefecture": "福岡県",
+      "implementationDate": "2027-08-18",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "小樽市",
+      "prefecture": "北海道",
+      "implementationDate": "2027-03-17",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": "令和9年3月適合基準日"
+    },
+    {
+      "name": "中井町",
+      "prefecture": "神奈川県",
+      "implementationDate": "2027-08-13",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "山北町",
+      "prefecture": "神奈川県",
+      "implementationDate": "2027-08-13",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "一関市",
+      "prefecture": "岩手県",
+      "implementationDate": "2027-09-17",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "米沢市",
+      "prefecture": "山形県",
+      "implementationDate": "2027-09-18",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "浜松市",
+      "prefecture": "静岡県",
+      "implementationDate": "2027-09-16",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "姫路市",
+      "prefecture": "兵庫県",
+      "implementationDate": "2027-09-16",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "帯広市",
+      "prefecture": "北海道",
+      "implementationDate": "2027-10-15",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "松本市",
+      "prefecture": "長野県",
+      "implementationDate": "2027-10-21",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "宇治市",
+      "prefecture": "京都府",
+      "implementationDate": "2027-10-20",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "大崎市",
+      "prefecture": "宮城県",
+      "implementationDate": "2027-11-18",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "豊田市",
+      "prefecture": "愛知県",
+      "implementationDate": "2027-11-17",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "呉市",
+      "prefecture": "広島県",
+      "implementationDate": "2027-11-18",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "石狩市",
+      "prefecture": "北海道",
+      "implementationDate": "2027-11-25",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
+    },
+    {
+      "name": "北広島市",
+      "prefecture": "北海道",
+      "implementationDate": "2027-09-16",
+      "status": "実施予定",
+      "url": "https://www.mhlw.go.jp/stf/newpage_45850.html",
+      "notes": ""
     }
   ]
 }

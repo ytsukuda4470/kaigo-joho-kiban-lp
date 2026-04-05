@@ -964,11 +964,11 @@
             <!-- 2カラムレイアウト -->
             <div class="flex flex-col lg:flex-row gap-8 items-start">
 
-                <!-- 左: 地図 (40%) -->
-                <div class="w-full lg:w-2/5 flex-shrink-0">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 relative">
+                <!-- 左: 地図 (50%) -->
+                <div class="w-full lg:w-1/2 flex-shrink-0">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 relative">
                         <p class="text-xs text-gray-400 text-center mb-2">都道府県をクリックして絞り込み</p>
-                        <div id="japan-map-container" class="relative" style="min-height:320px;">
+                        <div id="japan-map-container" class="relative" style="min-height:460px;">
                             <!-- D3で描画 -->
                             <div id="map-loading" class="flex items-center justify-center h-80 text-gray-400 text-sm">
                                 <i class="fas fa-spinner fa-spin mr-2"></i>地図を読み込み中...
@@ -995,6 +995,13 @@
 
                 <!-- 右: カードグリッド (60%) -->
                 <div class="flex-1 min-w-0">
+                    <!-- 年度タブ -->
+                    <div class="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit mb-4">
+                        <button onclick="setYearFilter('all')" id="year-tab-all" class="year-tab px-4 py-1.5 rounded-lg text-sm font-medium transition-all bg-white shadow-sm text-gray-900">すべて</button>
+                        <button onclick="setYearFilter('2026')" id="year-tab-2026" class="year-tab px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-gray-500 hover:text-gray-700">2026年</button>
+                        <button onclick="setYearFilter('2027')" id="year-tab-2027" class="year-tab px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-gray-500 hover:text-gray-700">2027年</button>
+                    </div>
+
                     <!-- 地方フィルターボタン -->
                     <div class="flex flex-wrap gap-2 mb-4" id="region-filter-buttons">
                         <button id="muni-filter-all" onclick="filterMunicipalities('all')"
@@ -1046,6 +1053,8 @@
                         <div id="municipalities-count" class="text-sm text-gray-500 mb-4 font-medium"></div>
                         <div id="municipalities-list" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
                         <p id="municipalities-empty" class="hidden text-center text-gray-400 py-10">該当する自治体が見つかりませんでした</p>
+                        <!-- ページネーション -->
+                        <div id="municipalities-pagination" class="flex justify-center gap-2 mt-4 flex-wrap"></div>
                     </div>
 
                     <!-- フッター注記 -->
@@ -2141,10 +2150,13 @@
         };
 
         var allMunicipalities = [];
-        var currentFilter = 'all';
-        var selectedPref = null;  // 地図で選択中の都道府県
-        var prefCountMap = {};    // 都道府県ごとの件数
-        var mapSvg = null;        // D3 SVG参照（再描画用）
+        var selectedRegion = 'all';  // 地方フィルター
+        var selectedPref = null;     // 地図で選択中の都道府県
+        var selectedYear = 'all';    // 年度フィルター
+        var prefCountMap = {};       // 都道府県ごとの件数（フィルター後）
+        var mapSvg = null;           // D3 SVG参照（再描画用）
+        var currentPage = 1;
+        var PAGE_SIZE = 18;
 
         // -----------------------------------------------
         // ステータス判定・日付フォーマット
@@ -2161,79 +2173,148 @@
         }
 
         // -----------------------------------------------
-        // カード描画（地方フィルター + 都道府県フィルター両対応）
+        // フィルタリング（年度 + 地方 + 都道府県の3フィルター）
         // -----------------------------------------------
-        function renderMunicipalities(data) {
+        function getFilteredMunicipalities() {
+            return allMunicipalities.filter(function(m) {
+                var yearMatch = selectedYear === 'all' || m.implementationDate.startsWith(selectedYear);
+                var regionMatch = selectedRegion === 'all' || (function() {
+                    if (selectedRegion === '北海道') return m.prefecture === '北海道';
+                    return (REGION_MAP[m.prefecture] || '') === selectedRegion;
+                })();
+                var prefMatch = !selectedPref || m.prefecture === selectedPref;
+                return yearMatch && regionMatch && prefMatch;
+            });
+        }
+
+        // -----------------------------------------------
+        // カード描画（年度 + 地方 + 都道府県フィルター + ページネーション）
+        // -----------------------------------------------
+        function renderMunicipalities(filtered) {
             var list = document.getElementById('municipalities-list');
             var emptyEl = document.getElementById('municipalities-empty');
             var countEl = document.getElementById('municipalities-count');
             if (!list) return;
 
-            var filtered = data.filter(function(m) {
-                // 都道府県フィルター（地図クリック）が優先
-                if (selectedPref !== null) {
-                    return m.prefecture === selectedPref;
-                }
-                // 地方フィルター（ボタン）
-                if (currentFilter === 'all') return true;
-                var region = REGION_MAP[m.prefecture] || '';
-                if (currentFilter === '北海道') return m.prefecture === '北海道';
-                return region === currentFilter;
-            });
+            var total = filtered.length;
+            var totalPages = Math.ceil(total / PAGE_SIZE);
+            if (currentPage > totalPages) currentPage = 1;
 
-            if (filtered.length === 0) {
+            var start = (currentPage - 1) * PAGE_SIZE;
+            var paged = filtered.slice(start, start + PAGE_SIZE);
+
+            if (countEl) countEl.textContent = total + '件の自治体が見つかりました';
+
+            if (paged.length === 0) {
                 list.innerHTML = '';
-                emptyEl.classList.remove('hidden');
-                countEl.textContent = '';
+                if (emptyEl) emptyEl.classList.remove('hidden');
             } else {
-                emptyEl.classList.add('hidden');
-                countEl.textContent = filtered.length + '件の自治体が見つかりました';
-                list.innerHTML = filtered.map(function(m) {
+                if (emptyEl) emptyEl.classList.add('hidden');
+                list.innerHTML = paged.map(function(m) {
                     var s = getStatusClass(m.status, m.implementationDate);
                     var dateDisp = formatDate(m.implementationDate);
                     return '<div class="bg-white rounded-xl p-3 border-l-4 ' + s.cls + ' shadow-sm hover:shadow-md transition-shadow">' +
                         '<p class="font-bold text-gray-900 text-sm mb-0.5">' + m.name + '</p>' +
                         '<p class="text-xs text-gray-500 mb-1">' + m.prefecture + '</p>' +
                         '<p class="font-black text-sm ' + s.textCls + '">' + dateDisp + '</p>' +
-                        '<a href="' + m.url + '" target="_blank" rel="noopener noreferrer" ' +
+                        '<a href="' + (m.url || 'https://www.mhlw.go.jp/stf/newpage_45850.html') + '" target="_blank" rel="noopener noreferrer" ' +
                         'class="inline-flex items-center text-xs text-primary hover:underline mt-1">' +
                         '<i class="fas fa-external-link-alt mr-1 text-xs"></i>詳細</a>' +
                         '</div>';
                 }).join('');
             }
+
+            // ページネーション
+            var pagEl = document.getElementById('municipalities-pagination');
+            if (pagEl) {
+                if (totalPages <= 1) {
+                    pagEl.innerHTML = '';
+                } else {
+                    var btns = '';
+                    if (currentPage > 1) btns += '<button onclick="goToPage(' + (currentPage - 1) + ')" class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm hover:bg-gray-50">‹ 前へ</button>';
+                    for (var i = 1; i <= totalPages; i++) {
+                        if (i === currentPage) {
+                            btns += '<button class="px-3 py-1.5 rounded-lg text-sm font-bold bg-primary text-white">' + i + '</button>';
+                        } else if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 1) {
+                            btns += '<button onclick="goToPage(' + i + ')" class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm hover:bg-gray-50">' + i + '</button>';
+                        } else if (Math.abs(i - currentPage) === 2) {
+                            btns += '<span class="px-2 text-gray-400">…</span>';
+                        }
+                    }
+                    if (currentPage < totalPages) btns += '<button onclick="goToPage(' + (currentPage + 1) + ')" class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm hover:bg-gray-50">次へ ›</button>';
+                    pagEl.innerHTML = btns;
+                }
+            }
         }
+
+        window.goToPage = function(page) {
+            currentPage = page;
+            renderMunicipalities(getFilteredMunicipalities());
+            var sec = document.getElementById('municipalities-2026');
+            if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
 
         // -----------------------------------------------
         // 地図で都道府県フィルター
         // -----------------------------------------------
         function filterMunicipalitiesByPref(prefName) {
             selectedPref = prefName;
+            currentPage = 1;
             // 選択中表示を更新
             var selEl = document.getElementById('map-selected');
             if (selEl) {
                 if (prefName) {
-                    var cnt = prefCountMap[prefName] || 0;
-                    selEl.textContent = prefName + ' (' + cnt + '件)';
+                    var filtered = getFilteredMunicipalities();
+                    selEl.textContent = prefName + ' (' + filtered.length + '件)';
                 } else {
                     selEl.textContent = '';
                 }
             }
             // 地方フィルターボタンをリセット（都道府県フィルター中はすべてを表示）
             if (prefName) {
+                selectedRegion = 'all';
                 document.querySelectorAll('.muni-filter-btn').forEach(function(btn) {
                     btn.classList.remove('active-filter', 'bg-primary', 'text-white', 'border-primary');
                     btn.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
                 });
+                // すべてボタンをアクティブに
+                var allBtn = document.getElementById('muni-filter-all');
+                if (allBtn) {
+                    allBtn.classList.add('active-filter', 'bg-primary', 'text-white', 'border-primary');
+                    allBtn.classList.remove('bg-white', 'text-gray-600', 'border-gray-200');
+                }
             }
-            renderMunicipalities(allMunicipalities);
+            renderMunicipalities(getFilteredMunicipalities());
         }
 
         // -----------------------------------------------
-        // 地図パス色の取得
+        // 地図パス色の取得（selectedYear を考慮）
         // -----------------------------------------------
+        function buildPrefCountMap() {
+            var map = {};
+            allMunicipalities.forEach(function(m) {
+                var yearMatch = selectedYear === 'all' || m.implementationDate.startsWith(selectedYear);
+                if (yearMatch) {
+                    map[m.prefecture] = (map[m.prefecture] || 0) + 1;
+                }
+            });
+            return map;
+        }
+
         function getPrefFill(prefName) {
             if (!prefCountMap[prefName]) return '#e5e7eb';
             return prefName === selectedPref ? '#1a6b2c' : '#238e3a';
+        }
+
+        function updateMapColors() {
+            prefCountMap = buildPrefCountMap();
+            if (mapSvg) {
+                mapSvg.selectAll('path')
+                    .attr('fill', function(p) { return getPrefFill(p.properties.nam_ja); })
+                    .style('cursor', function(d) {
+                        return prefCountMap[d.properties.nam_ja] ? 'pointer' : 'default';
+                    });
+            }
         }
 
         // -----------------------------------------------
@@ -2243,8 +2324,8 @@
             var container = document.getElementById('japan-map-container');
             if (!container || typeof d3 === 'undefined') return;
 
-            // 固定viewBox（320×400）でSVGを描画してCSSでレスポンシブに
-            var VW = 320, VH = 400;
+            // 固定viewBox（380×480）でSVGを描画してCSSでレスポンシブに
+            var VW = 380, VH = 480;
 
             fetch('data/japan.geojson')
                 .then(function(r) { return r.json(); })
@@ -2341,11 +2422,8 @@
                         return a.implementationDate.localeCompare(b.implementationDate);
                     });
 
-                    // 都道府県ごとの件数集計
-                    prefCountMap = {};
-                    allMunicipalities.forEach(function(m) {
-                        prefCountMap[m.prefecture] = (prefCountMap[m.prefecture] || 0) + 1;
-                    });
+                    // 都道府県ごとの件数集計（全データ対象）
+                    prefCountMap = buildPrefCountMap();
 
                     // 統計サマリー更新
                     var totalEl = document.getElementById('stat-total');
@@ -2361,7 +2439,7 @@
                     document.getElementById('municipalities-skeleton').classList.add('hidden');
                     document.getElementById('municipalities-grid').classList.remove('hidden');
 
-                    renderMunicipalities(allMunicipalities);
+                    renderMunicipalities(getFilteredMunicipalities());
 
                     // D3 地図を初期化（レイアウト確定後に実行）
                     setTimeout(initJapanMap, 200);
@@ -2381,14 +2459,15 @@
         // 地方フィルター関数（グローバルに公開）
         // -----------------------------------------------
         window.filterMunicipalities = function(filter) {
-            currentFilter = filter;
+            selectedRegion = filter;
             selectedPref = null; // 地方フィルター時は都道府県選択をリセット
+            currentPage = 1;
 
             // 選択中表示をリセット
             var selEl = document.getElementById('map-selected');
             if (selEl) selEl.textContent = '';
 
-            // 地図の色をリセット
+            // 地図の色を更新
             if (mapSvg) {
                 mapSvg.selectAll('path').attr('fill', function(p) {
                     return getPrefFill(p.properties.nam_ja);
@@ -2408,7 +2487,43 @@
                     btn.classList.remove('bg-white', 'text-gray-600', 'border-gray-200');
                 }
             });
-            renderMunicipalities(allMunicipalities);
+            renderMunicipalities(getFilteredMunicipalities());
+        };
+
+        // -----------------------------------------------
+        // 年度フィルター関数（グローバルに公開）
+        // -----------------------------------------------
+        window.setYearFilter = function(year) {
+            selectedYear = year;
+            currentPage = 1;
+            // タブのスタイル切り替え
+            document.querySelectorAll('.year-tab').forEach(function(btn) {
+                btn.classList.remove('bg-white', 'shadow-sm', 'text-gray-900');
+                btn.classList.add('text-gray-500', 'hover:text-gray-700');
+            });
+            var activeTab = document.getElementById('year-tab-' + year);
+            if (activeTab) {
+                activeTab.classList.remove('text-gray-500', 'hover:text-gray-700');
+                activeTab.classList.add('bg-white', 'shadow-sm', 'text-gray-900');
+            }
+            // 地方フィルター・都道府県選択をリセット
+            selectedRegion = 'all';
+            selectedPref = null;
+            var selEl = document.getElementById('map-selected');
+            if (selEl) selEl.textContent = '';
+            document.querySelectorAll('.muni-filter-btn').forEach(function(btn) {
+                btn.classList.remove('active-filter', 'bg-primary', 'text-white', 'border-primary');
+                btn.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
+            });
+            var allBtn = document.getElementById('muni-filter-all');
+            if (allBtn) {
+                allBtn.classList.add('active-filter', 'bg-primary', 'text-white', 'border-primary');
+                allBtn.classList.remove('bg-white', 'text-gray-600', 'border-gray-200');
+            }
+            // 地図のカラーを年度に合わせて更新
+            prefCountMap = buildPrefCountMap();
+            updateMapColors();
+            renderMunicipalities(getFilteredMunicipalities());
         };
 
         // ページロード時に取得
