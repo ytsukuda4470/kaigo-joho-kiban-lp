@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Text, ActivityIndicator, View } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 import { LoginScreen }          from '../screens/LoginScreen';
 import { InquiryListScreen }    from '../screens/InquiryListScreen';
@@ -12,6 +13,11 @@ import { InquiryDetailScreen }  from '../screens/InquiryDetailScreen';
 import { ActionCreateScreen }   from '../screens/ActionCreateScreen';
 import { FollowupListScreen }   from '../screens/FollowupListScreen';
 import { SettingsScreen }       from '../screens/SettingsScreen';
+
+// Google Sign-In の設定
+GoogleSignin.configure({
+  webClientId: '1024244209293-nbr6rscb8usvgv8sku6j93s3lb2vkrbs.apps.googleusercontent.com',
+});
 
 // Firestore offline persistence
 firestore().settings({
