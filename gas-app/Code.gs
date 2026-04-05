@@ -8,6 +8,10 @@
 
 const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID') || '';
 
+// Firebase Functions からのメール送信を保護するシークレット
+// GASスクリプトプロパティ「GAS_SECRET」に設定してください
+const GAS_SECRET = PropertiesService.getScriptProperties().getProperty('GAS_SECRET') || '';
+
 // シート名
 const SH_INQUIRIES = '問い合わせ';
 const SH_ACTIONS   = '対応履歴';
@@ -33,6 +37,20 @@ const STATUSES = ['新規', '対応中', '現地訪問済', '完了', 'フォロ
 // ============================================================
 
 function doGet(e) {
+  // 初期セットアップ: ?action=setup&token=INIT_TOKEN でプロパティを設定
+  if (e && e.parameter && e.parameter.action === 'setup') {
+    const initToken = PropertiesService.getScriptProperties().getProperty('INIT_TOKEN') || 'init2026';
+    if (e.parameter.token === initToken) {
+      const secret = e.parameter.secret;
+      if (secret) {
+        PropertiesService.getScriptProperties().setProperty('GAS_SECRET', secret);
+        return ContentService.createTextOutput(JSON.stringify({ ok: true, message: 'GAS_SECRET が設定されました' }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: 'トークンエラー' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
   return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('介護基盤 管理ツール')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
@@ -44,6 +62,10 @@ function doPost(e) {
 
     // メール送信アクション（管理画面・Firebase Functions から呼び出し）
     if (payload.action === 'sendEmail') {
+      // シークレットキー検証（GAS_SECRETが設定されている場合のみチェック）
+      if (GAS_SECRET && payload.secret !== GAS_SECRET) {
+        return jsonResponse({ success: false, error: '認証エラー' });
+      }
       if (!payload.to || !payload.subject) {
         return jsonResponse({ success: false, error: '宛先と件名は必須です' });
       }
@@ -812,4 +834,13 @@ function getWorkflowStatus() {
   } catch (e) {
     return { run: null, error: e.message };
   }
+}
+
+// ============================================================
+//  初期セットアップ（一度だけ実行してください）
+// ============================================================
+function setupGasSecret() {
+  // GASスクリプトプロパティにシークレットを設定
+  PropertiesService.getScriptProperties().setProperty('GAS_SECRET', 'UOxZ-IhPIGLSTvHXqpVE_qhm3U9uSNH-nwUeYtJgMPI');
+  Logger.log('GAS_SECRET が設定されました');
 }

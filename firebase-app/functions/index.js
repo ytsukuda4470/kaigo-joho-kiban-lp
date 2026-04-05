@@ -17,13 +17,15 @@ const GITHUB_REPO    = 'kaigo-joho-kiban-lp';
 const KEYWORD        = '介護情報基盤';
 
 // GAS ウェブアプリ URL（メール送信・フォーム受付）
-const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw51c7_q9NbC7Hn6ojfaUF9ytGq2FwM9MKttvnlVuId-XP9zzdJ-zUY71O4onb4BdFU/exec';
+const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzToDsIwWSOFTV9zNuFawFZIk2SFczuritdL8Ouu1APhuHDEKFfb-ULFvV33lwsXuiVUQ/exec';
 
 // ── シークレット定義 ──────────────────────────────────────
 // firebase functions:secrets:set GCHAT_WEBHOOK_URL
 // firebase functions:secrets:set GITHUB_TOKEN
+// firebase functions:secrets:set GAS_SECRET
 const GCHAT_WEBHOOK_URL = defineSecret('GCHAT_WEBHOOK_URL');
 const GITHUB_TOKEN      = defineSecret('GITHUB_TOKEN');
+const GAS_SECRET        = defineSecret('GAS_SECRET');
 
 // ── ユーティリティ ────────────────────────────────────────
 
@@ -36,7 +38,7 @@ function requireAuth(request) {
 // GMAIL_USER / GMAIL_APP_PASSWORD は不要になりました。
 
 exports.sendEmail = onCall(
-  { region: REGION },
+  { region: REGION, secrets: [GAS_SECRET] },
   async (request) => {
     requireAuth(request);
     const { to, subject, body, inquiryId } = request.data;
@@ -45,7 +47,11 @@ exports.sendEmail = onCall(
     const res = await fetch(GAS_WEBAPP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'sendEmail', to, subject, body: body || '' }),
+      body: JSON.stringify({
+        action: 'sendEmail',
+        secret: GAS_SECRET.value(),
+        to, subject, body: body || '',
+      }),
     });
     if (!res.ok) throw new HttpsError('internal', `GAS endpoint error: ${res.status}`);
     const result = await res.json().catch(() => ({}));
