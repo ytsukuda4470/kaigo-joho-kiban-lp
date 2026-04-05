@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>介護情報基盤の準備、プロにおまかせ。| 株式会社２７９</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script>
         tailwind.config = {
@@ -943,77 +944,119 @@
          6b. 2026年 実施自治体一覧
     ============================================ -->
     <section id="municipalities-2026" class="py-20 sm:py-24" style="background-color: #F5F3EF;">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="reveal text-center mb-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <!-- ヘッダー -->
+            <div class="reveal text-center mb-8">
                 <span class="section-badge"><i class="fas fa-map-marker-alt mr-1 text-accent"></i>2026年 実施自治体</span>
                 <h2 class="text-3xl sm:text-4xl font-rounded font-bold text-gray-900 mb-3">お住まいの地域での導入状況</h2>
                 <p class="text-gray-600 text-sm max-w-2xl mx-auto">2026年中に介護情報基盤の利用を開始する自治体の一覧です。<br>お住まいの市区町村が含まれている場合は、今すぐ準備を始めましょう。</p>
-            </div>
-
-            <!-- 都道府県フィルター -->
-            <div class="reveal mb-6">
-                <div class="flex flex-wrap gap-2 justify-center">
-                    <button id="muni-filter-all" onclick="filterMunicipalities('all')"
-                        class="muni-filter-btn active-filter px-4 py-2 rounded-full text-sm font-bold border border-primary bg-primary text-white transition-all">
-                        すべて
-                    </button>
-                    <button onclick="filterMunicipalities('北海道')"
-                        class="muni-filter-btn px-4 py-2 rounded-full text-sm font-bold border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary transition-all">
-                        北海道
-                    </button>
-                    <button onclick="filterMunicipalities('東北')"
-                        class="muni-filter-btn px-4 py-2 rounded-full text-sm font-bold border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary transition-all">
-                        東北
-                    </button>
-                    <button onclick="filterMunicipalities('関東')"
-                        class="muni-filter-btn px-4 py-2 rounded-full text-sm font-bold border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary transition-all">
-                        関東
-                    </button>
-                    <button onclick="filterMunicipalities('中部')"
-                        class="muni-filter-btn px-4 py-2 rounded-full text-sm font-bold border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary transition-all">
-                        中部
-                    </button>
-                    <button onclick="filterMunicipalities('近畿')"
-                        class="muni-filter-btn px-4 py-2 rounded-full text-sm font-bold border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary transition-all">
-                        近畿
-                    </button>
-                    <button onclick="filterMunicipalities('中国・四国')"
-                        class="muni-filter-btn px-4 py-2 rounded-full text-sm font-bold border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary transition-all">
-                        中国・四国
-                    </button>
-                    <button onclick="filterMunicipalities('九州・沖縄')"
-                        class="muni-filter-btn px-4 py-2 rounded-full text-sm font-bold border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary transition-all">
-                        九州・沖縄
-                    </button>
+                <!-- 統計サマリー -->
+                <div id="map-stats" class="flex flex-wrap justify-center gap-4 sm:gap-6 mt-4 text-sm text-gray-500">
+                    <span>実施自治体: <strong id="stat-total" class="text-primary">--</strong> 件</span>
+                    <span class="text-gray-200 hidden sm:inline">|</span>
+                    <span>対象都道府県: <strong id="stat-prefs" class="text-primary">--</strong> 都道府県</span>
+                    <span class="text-gray-200 hidden sm:inline">|</span>
+                    <span>最終更新: <strong id="municipalities-updated" class="text-primary">--</strong></span>
                 </div>
             </div>
 
-            <!-- ローディング スケルトン -->
-            <div id="municipalities-skeleton" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                <div class="animate-pulse bg-white rounded-xl p-3 h-20 shadow-sm"></div>
-                <div class="animate-pulse bg-white rounded-xl p-3 h-20 shadow-sm"></div>
-                <div class="animate-pulse bg-white rounded-xl p-3 h-20 shadow-sm"></div>
-                <div class="animate-pulse bg-white rounded-xl p-3 h-20 shadow-sm"></div>
-                <div class="animate-pulse bg-white rounded-xl p-3 h-20 shadow-sm"></div>
-                <div class="animate-pulse bg-white rounded-xl p-3 h-20 shadow-sm"></div>
-                <div class="animate-pulse bg-white rounded-xl p-3 h-20 shadow-sm"></div>
-                <div class="animate-pulse bg-white rounded-xl p-3 h-20 shadow-sm"></div>
-            </div>
+            <!-- 2カラムレイアウト -->
+            <div class="flex flex-col lg:flex-row gap-8 items-start">
 
-            <!-- 自治体グリッド -->
-            <div id="municipalities-grid" class="hidden">
-                <div id="municipalities-count" class="text-sm text-gray-500 text-center mb-4"></div>
-                <div id="municipalities-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
-                <p id="municipalities-empty" class="hidden text-center text-gray-400 py-10">該当する自治体が見つかりませんでした</p>
-            </div>
+                <!-- 左: 地図 (40%) -->
+                <div class="w-full lg:w-2/5 flex-shrink-0">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 relative">
+                        <p class="text-xs text-gray-400 text-center mb-2">都道府県をクリックして絞り込み</p>
+                        <div id="japan-map-container" class="relative" style="min-height:320px;">
+                            <!-- D3で描画 -->
+                            <div id="map-loading" class="flex items-center justify-center h-80 text-gray-400 text-sm">
+                                <i class="fas fa-spinner fa-spin mr-2"></i>地図を読み込み中...
+                            </div>
+                        </div>
+                        <!-- ツールチップ -->
+                        <div id="map-tooltip" class="pointer-events-none absolute z-10 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg whitespace-nowrap" style="display:none; top:0; left:0;"></div>
+                        <!-- 選択中表示 -->
+                        <div id="map-selected" class="text-center text-sm font-bold text-primary mt-2 min-h-5"></div>
+                    </div>
+                    <!-- 凡例 -->
+                    <div class="flex gap-4 mt-3 text-xs text-gray-500 justify-center">
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full inline-block" style="background:#238e3a;"></span>実施予定あり
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full inline-block bg-gray-200"></span>該当なし
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full inline-block" style="background:#1a6b2c;"></span>選択中
+                        </span>
+                    </div>
+                </div>
 
-            <!-- フッター注記 -->
-            <div class="reveal mt-6 text-center">
-                <p class="text-xs text-gray-400">
-                    出典：<a href="https://www.kaigo-kiban-portal.jp/assets/pdf/taioujyoukyou.pdf" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">介護情報基盤ポータル（市町村対応状況）</a>
-                    ｜最終更新: <span id="municipalities-updated">読込中...</span>（自動更新）
-                </p>
-                <p class="text-xs text-gray-400 mt-1">上記以外の自治体にも<strong>オンラインで全国対応</strong>しております。お気軽にご相談ください。</p>
+                <!-- 右: カードグリッド (60%) -->
+                <div class="flex-1 min-w-0">
+                    <!-- 地方フィルターボタン -->
+                    <div class="flex flex-wrap gap-2 mb-4" id="region-filter-buttons">
+                        <button id="muni-filter-all" onclick="filterMunicipalities('all')"
+                            class="muni-filter-btn active-filter px-4 py-2 rounded-full text-sm font-bold border border-primary bg-primary text-white transition-all">
+                            すべて
+                        </button>
+                        <button onclick="filterMunicipalities('北海道')"
+                            class="muni-filter-btn px-4 py-2 rounded-full text-sm font-bold border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary transition-all">
+                            北海道
+                        </button>
+                        <button onclick="filterMunicipalities('東北')"
+                            class="muni-filter-btn px-4 py-2 rounded-full text-sm font-bold border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary transition-all">
+                            東北
+                        </button>
+                        <button onclick="filterMunicipalities('関東')"
+                            class="muni-filter-btn px-4 py-2 rounded-full text-sm font-bold border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary transition-all">
+                            関東
+                        </button>
+                        <button onclick="filterMunicipalities('中部')"
+                            class="muni-filter-btn px-4 py-2 rounded-full text-sm font-bold border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary transition-all">
+                            中部
+                        </button>
+                        <button onclick="filterMunicipalities('近畿')"
+                            class="muni-filter-btn px-4 py-2 rounded-full text-sm font-bold border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary transition-all">
+                            近畿
+                        </button>
+                        <button onclick="filterMunicipalities('中国・四国')"
+                            class="muni-filter-btn px-4 py-2 rounded-full text-sm font-bold border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary transition-all">
+                            中国・四国
+                        </button>
+                        <button onclick="filterMunicipalities('九州・沖縄')"
+                            class="muni-filter-btn px-4 py-2 rounded-full text-sm font-bold border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary transition-all">
+                            九州・沖縄
+                        </button>
+                    </div>
+
+                    <!-- ローディング スケルトン -->
+                    <div id="municipalities-skeleton" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <div class="animate-pulse bg-white rounded-xl p-3 h-20 shadow-sm"></div>
+                        <div class="animate-pulse bg-white rounded-xl p-3 h-20 shadow-sm"></div>
+                        <div class="animate-pulse bg-white rounded-xl p-3 h-20 shadow-sm"></div>
+                        <div class="animate-pulse bg-white rounded-xl p-3 h-20 shadow-sm"></div>
+                        <div class="animate-pulse bg-white rounded-xl p-3 h-20 shadow-sm"></div>
+                        <div class="animate-pulse bg-white rounded-xl p-3 h-20 shadow-sm"></div>
+                    </div>
+
+                    <!-- 自治体グリッド -->
+                    <div id="municipalities-grid" class="hidden">
+                        <div id="municipalities-count" class="text-sm text-gray-500 mb-4 font-medium"></div>
+                        <div id="municipalities-list" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+                        <p id="municipalities-empty" class="hidden text-center text-gray-400 py-10">該当する自治体が見つかりませんでした</p>
+                    </div>
+
+                    <!-- フッター注記 -->
+                    <div class="mt-6">
+                        <p class="text-xs text-gray-400">
+                            出典：<a href="https://www.kaigo-kiban-portal.jp/assets/pdf/taioujyoukyou.pdf" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">介護情報基盤ポータル（市町村対応状況）</a>
+                            ｜最終更新: <span id="municipalities-updated-footer">--</span>（自動更新）
+                        </p>
+                        <p class="text-xs text-gray-400 mt-1">上記以外の自治体にも<strong>オンラインで全国対応</strong>しております。お気軽にご相談ください。</p>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -2082,7 +2125,7 @@
     })();
 
     // ============================================
-    // 2026年 実施自治体 動的表示
+    // 2026年 実施自治体 動的表示 + D3 日本地図
     // ============================================
     (function() {
         // 都道府県 → 地方区分マッピング
@@ -2099,7 +2142,13 @@
 
         var allMunicipalities = [];
         var currentFilter = 'all';
+        var selectedPref = null;  // 地図で選択中の都道府県
+        var prefCountMap = {};    // 都道府県ごとの件数
+        var mapSvg = null;        // D3 SVG参照（再描画用）
 
+        // -----------------------------------------------
+        // ステータス判定・日付フォーマット
+        // -----------------------------------------------
         function getStatusClass(status, date) {
             var today = new Date('2026-04-05');
             var impl = new Date(date);
@@ -2108,10 +2157,12 @@
         }
 
         function formatDate(dateStr) {
-            // "2026-11-13" → "2026/11/13"
             return dateStr.replace(/-/g, '/').replace(/\/0(\d)/g, '/$1');
         }
 
+        // -----------------------------------------------
+        // カード描画（地方フィルター + 都道府県フィルター両対応）
+        // -----------------------------------------------
         function renderMunicipalities(data) {
             var list = document.getElementById('municipalities-list');
             var emptyEl = document.getElementById('municipalities-empty');
@@ -2119,6 +2170,11 @@
             if (!list) return;
 
             var filtered = data.filter(function(m) {
+                // 都道府県フィルター（地図クリック）が優先
+                if (selectedPref !== null) {
+                    return m.prefecture === selectedPref;
+                }
+                // 地方フィルター（ボタン）
                 if (currentFilter === 'all') return true;
                 var region = REGION_MAP[m.prefecture] || '';
                 if (currentFilter === '北海道') return m.prefecture === '北海道';
@@ -2147,6 +2203,131 @@
             }
         }
 
+        // -----------------------------------------------
+        // 地図で都道府県フィルター
+        // -----------------------------------------------
+        function filterMunicipalitiesByPref(prefName) {
+            selectedPref = prefName;
+            // 選択中表示を更新
+            var selEl = document.getElementById('map-selected');
+            if (selEl) {
+                if (prefName) {
+                    var cnt = prefCountMap[prefName] || 0;
+                    selEl.textContent = prefName + ' (' + cnt + '件)';
+                } else {
+                    selEl.textContent = '';
+                }
+            }
+            // 地方フィルターボタンをリセット（都道府県フィルター中はすべてを表示）
+            if (prefName) {
+                document.querySelectorAll('.muni-filter-btn').forEach(function(btn) {
+                    btn.classList.remove('active-filter', 'bg-primary', 'text-white', 'border-primary');
+                    btn.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
+                });
+            }
+            renderMunicipalities(allMunicipalities);
+        }
+
+        // -----------------------------------------------
+        // 地図パス色の取得
+        // -----------------------------------------------
+        function getPrefFill(prefName) {
+            if (!prefCountMap[prefName]) return '#e5e7eb';
+            return prefName === selectedPref ? '#1a6b2c' : '#238e3a';
+        }
+
+        // -----------------------------------------------
+        // D3 日本地図 初期化
+        // -----------------------------------------------
+        function initJapanMap() {
+            var container = document.getElementById('japan-map-container');
+            if (!container || typeof d3 === 'undefined') return;
+
+            // 固定viewBox（320×400）でSVGを描画してCSSでレスポンシブに
+            var VW = 320, VH = 400;
+
+            fetch('data/japan.geojson')
+                .then(function(r) { return r.json(); })
+                .then(function(geoData) {
+                    var loadingEl = document.getElementById('map-loading');
+                    if (loadingEl) loadingEl.style.display = 'none';
+
+                    var svg = d3.select('#japan-map-container')
+                        .append('svg')
+                        .attr('width', '100%')
+                        .attr('height', '100%')
+                        .attr('viewBox', '0 0 ' + VW + ' ' + VH)
+                        .attr('preserveAspectRatio', 'xMidYMid meet')
+                        .style('display', 'block')
+                        .style('min-height', '280px');
+
+                    mapSvg = svg;
+
+                    var projection = d3.geoMercator()
+                        .fitSize([VW, VH], geoData);
+
+                    var path = d3.geoPath().projection(projection);
+
+                    var tooltip = document.getElementById('map-tooltip');
+
+                    svg.selectAll('path')
+                        .data(geoData.features)
+                        .join('path')
+                        .attr('d', path)
+                        .attr('fill', function(d) { return getPrefFill(d.properties.nam_ja); })
+                        .attr('stroke', '#fff')
+                        .attr('stroke-width', 0.5)
+                        .style('cursor', function(d) {
+                            return prefCountMap[d.properties.nam_ja] ? 'pointer' : 'default';
+                        })
+                        .on('mouseover', function(event, d) {
+                            var name = d.properties.nam_ja;
+                            var count = prefCountMap[name];
+                            if (count) {
+                                d3.select(this).attr('fill', name === selectedPref ? '#155724' : '#1a6b2c');
+                                if (tooltip) {
+                                    tooltip.innerHTML = '<strong>' + name + '</strong><br>' + count + '自治体';
+                                    tooltip.style.display = 'block';
+                                }
+                            }
+                        })
+                        .on('mousemove', function(event) {
+                            if (tooltip) {
+                                var rect = container.getBoundingClientRect();
+                                tooltip.style.left = (event.clientX - rect.left + 12) + 'px';
+                                tooltip.style.top = (event.clientY - rect.top - 36) + 'px';
+                            }
+                        })
+                        .on('mouseout', function(event, d) {
+                            var name = d.properties.nam_ja;
+                            d3.select(this).attr('fill', getPrefFill(name));
+                            if (tooltip) tooltip.style.display = 'none';
+                        })
+                        .on('click', function(event, d) {
+                            var name = d.properties.nam_ja;
+                            if (!prefCountMap[name]) return;
+                            if (selectedPref === name) {
+                                selectedPref = null;
+                                filterMunicipalitiesByPref(null);
+                            } else {
+                                filterMunicipalitiesByPref(name);
+                            }
+                            // 全パスを再描画
+                            svg.selectAll('path').attr('fill', function(p) {
+                                return getPrefFill(p.properties.nam_ja);
+                            });
+                        });
+                })
+                .catch(function(err) {
+                    console.warn('GeoJSON の読み込みに失敗しました:', err);
+                    var loadingEl = document.getElementById('map-loading');
+                    if (loadingEl) loadingEl.innerHTML = '<span class="text-gray-400 text-xs">地図の読み込みに失敗しました</span>';
+                });
+        }
+
+        // -----------------------------------------------
+        // municipalities.json 読み込み
+        // -----------------------------------------------
         function loadMunicipalities() {
             fetch('data/municipalities.json?v=' + Date.now())
                 .then(function(res) {
@@ -2160,15 +2341,30 @@
                         return a.implementationDate.localeCompare(b.implementationDate);
                     });
 
-                    // 更新日表示
+                    // 都道府県ごとの件数集計
+                    prefCountMap = {};
+                    allMunicipalities.forEach(function(m) {
+                        prefCountMap[m.prefecture] = (prefCountMap[m.prefecture] || 0) + 1;
+                    });
+
+                    // 統計サマリー更新
+                    var totalEl = document.getElementById('stat-total');
+                    var prefsEl = document.getElementById('stat-prefs');
                     var updEl = document.getElementById('municipalities-updated');
+                    var updFooterEl = document.getElementById('municipalities-updated-footer');
+                    if (totalEl) totalEl.textContent = allMunicipalities.length;
+                    if (prefsEl) prefsEl.textContent = Object.keys(prefCountMap).length;
                     if (updEl && data.lastUpdated) updEl.textContent = data.lastUpdated;
+                    if (updFooterEl && data.lastUpdated) updFooterEl.textContent = data.lastUpdated;
 
                     // スケルトン非表示、グリッド表示
                     document.getElementById('municipalities-skeleton').classList.add('hidden');
                     document.getElementById('municipalities-grid').classList.remove('hidden');
 
                     renderMunicipalities(allMunicipalities);
+
+                    // D3 地図を初期化（レイアウト確定後に実行）
+                    setTimeout(initJapanMap, 200);
                 })
                 .catch(function(err) {
                     console.warn('municipalities.json の読み込みに失敗しました:', err);
@@ -2176,20 +2372,35 @@
                     var grid = document.getElementById('municipalities-grid');
                     grid.classList.remove('hidden');
                     grid.innerHTML = '<p class="text-center text-gray-400 py-8">データの読み込みに失敗しました。<a href="https://www.kaigo-kiban-portal.jp/assets/pdf/taioujyoukyou.pdf" target="_blank" class="text-primary hover:underline">介護情報基盤ポータル</a>でご確認ください。</p>';
+                    // データなしでも地図は表示を試みる
+                    initJapanMap();
                 });
         }
 
-        // フィルター関数（グローバルに公開）
+        // -----------------------------------------------
+        // 地方フィルター関数（グローバルに公開）
+        // -----------------------------------------------
         window.filterMunicipalities = function(filter) {
             currentFilter = filter;
+            selectedPref = null; // 地方フィルター時は都道府県選択をリセット
+
+            // 選択中表示をリセット
+            var selEl = document.getElementById('map-selected');
+            if (selEl) selEl.textContent = '';
+
+            // 地図の色をリセット
+            if (mapSvg) {
+                mapSvg.selectAll('path').attr('fill', function(p) {
+                    return getPrefFill(p.properties.nam_ja);
+                });
+            }
+
             // ボタンのスタイル更新
             document.querySelectorAll('.muni-filter-btn').forEach(function(btn) {
                 btn.classList.remove('active-filter', 'bg-primary', 'text-white', 'border-primary');
                 btn.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
             });
-            // クリックされたボタンをアクティブ化
-            var allBtns = document.querySelectorAll('.muni-filter-btn');
-            allBtns.forEach(function(btn) {
+            document.querySelectorAll('.muni-filter-btn').forEach(function(btn) {
                 var txt = btn.textContent.trim();
                 if ((filter === 'all' && txt === 'すべて') ||
                     (filter !== 'all' && txt === filter)) {
