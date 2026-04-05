@@ -71,7 +71,7 @@ const fns  = firebase.app().functions('asia-northeast1');
      サインイン画面
 ====================================================== -->
 <template x-if="!authLoading && !authUser">
-  <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
+  <div class="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-yellow-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-xl p-10 w-full max-w-sm text-center fade-in">
       <img src="./app-icon.svg" alt="介護情報基盤PM" class="w-16 h-16 rounded-2xl mx-auto mb-5 shadow-md">
       <h1 class="text-xl font-bold text-gray-900 mb-1">介護情報基盤 PM</h1>
@@ -242,53 +242,121 @@ const fns  = firebase.app().functions('asia-northeast1');
       <!-- 問い合わせ一覧 -->
       <template x-if="currentPage==='inquiries'">
         <div class="fade-in">
-          <div class="flex flex-wrap gap-3 mb-5">
+          <!-- ツールバー -->
+          <div class="flex flex-wrap gap-3 mb-4 items-center">
             <div class="relative flex-1 min-w-48">
               <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
               <input type="text" x-model="searchQ" @input.debounce.300ms="filterInquiries()"
                      placeholder="法人名・事業所名・担当者・メール"
                      class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-primary">
             </div>
-            <select x-model="filterStatus" @change="filterInquiries()"
-                    class="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-primary">
-              <option value="all">すべてのステータス</option>
-              <template x-for="s in ['新規','対応中','現地訪問済','完了','フォロー中']" :key="s">
-                <option :value="s" x-text="s"></option>
-              </template>
-            </select>
-            <span class="text-sm text-gray-400 flex items-center" x-text="filteredInquiries.length+'件'"></span>
-          </div>
-          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="border-b border-gray-100 bg-gray-50">
-                    <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs">問い合わせ日</th>
-                    <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs">法人・事業所名</th>
-                    <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs hidden md:table-cell">都道府県</th>
-                    <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs hidden lg:table-cell">担当者</th>
-                    <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs">ステータス</th>
-                    <th class="py-3 px-4"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <template x-if="filteredInquiries.length===0 && !loading">
-                    <tr><td colspan="6" class="text-center py-12 text-gray-400 text-sm">データがありません</td></tr>
-                  </template>
-                  <template x-for="row in filteredInquiries" :key="row.id">
-                    <tr @click="openDetail(row.id)" class="border-b border-gray-50 hover:bg-blue-50/40 cursor-pointer transition-colors">
-                      <td class="py-3 px-4 text-gray-500 text-xs whitespace-nowrap" x-text="row.timestamp.slice(0,10)"></td>
-                      <td class="py-3 px-4"><div class="font-medium text-gray-800" x-text="row.corp"></div><div class="text-xs text-gray-400" x-text="row.office"></div></td>
-                      <td class="py-3 px-4 text-gray-500 text-xs hidden md:table-cell" x-text="row.prefecture"></td>
-                      <td class="py-3 px-4 hidden lg:table-cell"><div class="text-sm" x-text="row.name"></div><div class="text-xs text-gray-400" x-text="row.email"></div></td>
-                      <td class="py-3 px-4"><span class="status-badge" :class="statusClass(row.status)" x-text="row.status"></span></td>
-                      <td class="py-3 px-4 text-right"><i class="fas fa-chevron-right text-gray-300 text-xs"></i></td>
-                    </tr>
-                  </template>
-                </tbody>
-              </table>
+            <!-- リスト/カンバン切り替え -->
+            <div class="flex rounded-xl border border-gray-200 overflow-hidden bg-white">
+              <button @click="viewMode='list'" :class="viewMode==='list'?'bg-primary text-white':'text-gray-500 hover:bg-gray-50'" class="px-3 py-2 text-sm flex items-center gap-1.5 transition-colors">
+                <i class="fas fa-list text-xs"></i> リスト
+              </button>
+              <button @click="viewMode='kanban'" :class="viewMode==='kanban'?'bg-primary text-white':'text-gray-500 hover:bg-gray-50'" class="px-3 py-2 text-sm flex items-center gap-1.5 border-l border-gray-200 transition-colors">
+                <i class="fas fa-table-columns text-xs"></i> カンバン
+              </button>
             </div>
           </div>
+
+          <!-- ステータスタブ -->
+          <div class="flex gap-1.5 mb-4 flex-wrap">
+            <button @click="filterStatus='all'; filterInquiries()"
+                    :class="filterStatus==='all'?'bg-gray-700 text-white shadow-sm':'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'"
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all">
+              すべて <span x-text="'('+allInquiries.length+')'"></span>
+            </button>
+            <template x-for="s in ['新規','対応中','現地訪問済','完了','フォロー中']" :key="s">
+              <button @click="filterStatus=s; filterInquiries()"
+                      :class="filterStatus===s?'text-white shadow-sm':'bg-white border border-gray-200 hover:border-gray-300 text-gray-600'"
+                      :style="filterStatus===s ? 'background:'+statusColor(s) : ''"
+                      class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                      x-text="s+' ('+allInquiries.filter(r=>r.status===s).length+')'">
+              </button>
+            </template>
+            <span class="text-xs text-gray-400 flex items-center ml-1" x-text="filteredInquiries.length+'件表示'"></span>
+          </div>
+
+          <!-- リストビュー -->
+          <template x-if="viewMode==='list'">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-gray-100 bg-gray-50">
+                      <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs">問い合わせ日</th>
+                      <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs">法人・事業所名</th>
+                      <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs hidden md:table-cell">都道府県</th>
+                      <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs hidden lg:table-cell">担当者</th>
+                      <th class="text-left py-3 px-4 font-semibold text-gray-500 text-xs">ステータス</th>
+                      <th class="py-3 px-4"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template x-if="filteredInquiries.length===0 && !loading">
+                      <tr><td colspan="6" class="text-center py-12 text-gray-400 text-sm">データがありません</td></tr>
+                    </template>
+                    <template x-for="row in filteredInquiries" :key="row.id">
+                      <tr @click="openDetail(row.id)" class="border-b border-gray-50 hover:bg-emerald-50/40 cursor-pointer transition-colors">
+                        <td class="py-3 px-4 text-gray-500 text-xs whitespace-nowrap" x-text="row.timestamp.slice(0,10)"></td>
+                        <td class="py-3 px-4"><div class="font-medium text-gray-800" x-text="row.corp"></div><div class="text-xs text-gray-400" x-text="row.office"></div></td>
+                        <td class="py-3 px-4 text-gray-500 text-xs hidden md:table-cell" x-text="row.prefecture"></td>
+                        <td class="py-3 px-4 hidden lg:table-cell"><div class="text-sm" x-text="row.name"></div><div class="text-xs text-gray-400" x-text="row.email"></div></td>
+                        <td class="py-3 px-4"><span class="status-badge" :class="statusClass(row.status)" x-text="row.status"></span></td>
+                        <td class="py-3 px-4 text-right"><i class="fas fa-chevron-right text-gray-300 text-xs"></i></td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </template>
+
+          <!-- カンバンボード -->
+          <template x-if="viewMode==='kanban'">
+            <div class="overflow-x-auto pb-4">
+              <div class="flex gap-4 min-w-max">
+                <template x-for="col in ['新規','対応中','現地訪問済','完了','フォロー中']" :key="col">
+                  <div class="w-64 flex-shrink-0">
+                    <!-- 列ヘッダー -->
+                    <div class="flex items-center justify-between mb-3 px-1">
+                      <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full flex-shrink-0" :style="'background:'+statusColor(col)"></span>
+                        <span class="text-sm font-semibold text-gray-700" x-text="col"></span>
+                      </div>
+                      <span class="text-xs text-gray-400 bg-gray-100 rounded-full px-2 py-0.5"
+                            x-text="kanbanCards(col).length"></span>
+                    </div>
+                    <!-- カード群 -->
+                    <div class="space-y-2.5 min-h-24">
+                      <template x-if="kanbanCards(col).length===0">
+                        <div class="border-2 border-dashed border-gray-200 rounded-xl py-6 text-center text-xs text-gray-300">なし</div>
+                      </template>
+                      <template x-for="card in kanbanCards(col)" :key="card.id">
+                        <div @click="openDetail(card.id)"
+                             class="bg-white rounded-xl border border-gray-100 shadow-sm p-3.5 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all">
+                          <div class="font-medium text-gray-800 text-sm leading-tight mb-0.5" x-text="card.corp"></div>
+                          <div class="text-xs text-gray-400 mb-2" x-text="card.office"></div>
+                          <div class="flex items-center justify-between">
+                            <div class="text-xs text-gray-500 flex items-center gap-1">
+                              <i class="fas fa-user text-gray-300"></i>
+                              <span x-text="card.assignee||'未担当'"></span>
+                            </div>
+                            <div class="text-xs text-gray-300" x-text="card.timestamp.slice(0,10)"></div>
+                          </div>
+                          <template x-if="card.name">
+                            <div class="mt-1.5 text-xs text-gray-400 truncate" x-text="card.prefecture+' / '+card.name"></div>
+                          </template>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
         </div>
       </template>
 
@@ -338,7 +406,7 @@ const fns  = firebase.app().functions('asia-northeast1');
       <template x-if="currentPage==='templates'">
         <div class="fade-in space-y-4">
           <div class="flex justify-end mb-2">
-            <button @click="openTmplModal()" class="bg-primary text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"><i class="fas fa-plus mr-2"></i>新しいテンプレート</button>
+            <button @click="openTmplModal()" class="bg-primary text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-green-800 transition-colors"><i class="fas fa-plus mr-2"></i>新しいテンプレート</button>
           </div>
           <template x-for="tmpl in emailTemplates" :key="tmpl.id">
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
@@ -385,7 +453,7 @@ const fns  = firebase.app().functions('asia-northeast1');
                   </div>
                   <div class="flex gap-3">
                     <a href="https://kaigo-lp-279.web.app" target="_blank"
-                       class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm">
+                       class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-green-800 transition-colors shadow-sm">
                       <i class="fas fa-globe"></i>LPを開く
                     </a>
                     <button @click="lpTab='news'"
@@ -438,7 +506,7 @@ const fns  = firebase.app().functions('asia-northeast1');
                   <i class="fas fa-robot" :class="lpScraping?'animate-spin':''"></i>
                   <span x-text="lpScraping?'実行中...':'ニュース自動収集'"></span>
                 </button>
-                <button @click="publishLP()" :disabled="lpPublishing||lpItems.length===0" class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-sm">
+                <button @click="publishLP()" :disabled="lpPublishing||lpItems.length===0" class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-green-800 transition-colors disabled:opacity-50 shadow-sm">
                   <i class="fas fa-cloud-arrow-up" :class="lpPublishing?'animate-bounce':''"></i>
                   <span x-text="lpPublishing?'公開中...':'LP に公開'"></span>
                 </button>
@@ -579,7 +647,7 @@ const fns  = firebase.app().functions('asia-northeast1');
               <template x-for="s in ['新規','対応中','現地訪問済','完了','フォロー中']" :key="s"><option :value="s" x-text="s"></option></template>
             </select>
             <input x-model="editAssignee" placeholder="担当者" class="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary">
-            <button @click="saveStatus()" class="bg-primary text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">保存</button>
+            <button @click="saveStatus()" class="bg-primary text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-green-800 transition-colors">保存</button>
           </div>
           <textarea x-model="editNotes" placeholder="メモ・備考" class="w-full mt-3 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-primary resize-none" rows="3"></textarea>
           <button @click="saveNotes()" class="mt-1 text-xs text-primary hover:underline">メモを保存</button>
@@ -588,6 +656,7 @@ const fns  = firebase.app().functions('asia-northeast1');
           <button @click="openEmailModal(inquiryDetail.id, inquiryDetail.email,'','')" class="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl text-sm font-medium hover:bg-primary/20 transition-colors"><i class="fas fa-paper-plane"></i>メール送信</button>
           <button @click="openAddAction()" class="flex items-center gap-2 px-4 py-2 bg-warm/10 text-warm rounded-xl text-sm font-medium hover:bg-warm/20 transition-colors"><i class="fas fa-pencil"></i>対応記録</button>
           <button @click="openAddFollowUp()" class="flex items-center gap-2 px-4 py-2 bg-accent/10 text-accent rounded-xl text-sm font-medium hover:bg-accent/20 transition-colors"><i class="fas fa-circle-plus"></i>フォローアップ追加</button>
+          <button @click="postToGoogleChat(inquiryDetail)" class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm font-medium hover:bg-blue-100 transition-colors"><i class="fas fa-comments"></i>Chat投稿</button>
         </section>
         <section>
           <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">対応履歴</h3>
@@ -635,7 +704,7 @@ const fns  = firebase.app().functions('asia-northeast1');
       </div>
       <div class="flex gap-3 mt-5">
         <button @click="addActionOpen=false" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600">キャンセル</button>
-        <button @click="saveAction()" class="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-blue-700 transition-colors">保存</button>
+        <button @click="saveAction()" class="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-green-800 transition-colors">保存</button>
       </div>
     </div>
   </div>
@@ -675,7 +744,7 @@ const fns  = firebase.app().functions('asia-northeast1');
       </div>
       <div class="flex gap-3 mt-5">
         <button @click="emailModalOpen=false" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600">キャンセル</button>
-        <button @click="doSendEmail()" :disabled="sending" class="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50">
+        <button @click="doSendEmail()" :disabled="sending" class="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-green-800 transition-colors disabled:opacity-50">
           <i class="fas fa-arrow-up-right mr-2"></i><span x-text="sending?'送信中...':'送信'"></span>
         </button>
       </div>
@@ -709,7 +778,7 @@ const fns  = firebase.app().functions('asia-northeast1');
       <div class="flex gap-3 mt-5">
         <button @click="tmplModalOpen=false" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600">キャンセル</button>
         <button @click="saveTmpl()" :disabled="!tmplForm.name.trim()"
-                class="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50">
+                class="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-green-800 transition-colors disabled:opacity-50">
           <span x-text="tmplForm.id ? '保存' : '追加'"></span>
         </button>
       </div>
@@ -756,6 +825,7 @@ function app() {
     filteredInquiries: [],
     searchQ: '',
     filterStatus: 'all',
+    viewMode: 'list', // 'list' or 'kanban'
 
     detailOpen: false,
     inquiryDetail: null,
@@ -934,7 +1004,8 @@ function app() {
           })),
         };
         this.editStatus   = this.inquiryDetail.status;
-        this.editAssignee = this.inquiryDetail.assignee;
+        // 担当者未設定の場合はログインユーザーをデフォルトにセット
+        this.editAssignee = this.inquiryDetail.assignee || this.currentUser.displayName;
         this.editNotes    = this.inquiryDetail.notes;
         this.detailOpen   = true;
       } catch(e) { this.showToast(e.message,'error'); }
@@ -942,10 +1013,27 @@ function app() {
     },
 
     async saveStatus() {
+      const prevStatus   = this.inquiryDetail.status;
+      const prevAssignee = this.inquiryDetail.assignee;
       await db.collection('inquiries').doc(this.inquiryDetail.id).update({
         status: this.editStatus, assignee: this.editAssignee,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
+      // 変更内容を対応記録に自動記録
+      const changes = [];
+      if (prevStatus !== this.editStatus)
+        changes.push(`ステータス変更: ${prevStatus||'未設定'} → ${this.editStatus}`);
+      if (prevAssignee !== this.editAssignee)
+        changes.push(`担当者変更: ${prevAssignee||'未設定'} → ${this.editAssignee}`);
+      if (changes.length > 0) {
+        await db.collection('actions').add({
+          inquiryId: this.inquiryDetail.id,
+          type:      'ステータス変更',
+          content:   changes.join('\n') + `\n（記録者: ${this.currentUser.displayName}）`,
+          staff:     this.currentUser.displayName,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      }
       this.inquiryDetail.status   = this.editStatus;
       this.inquiryDetail.assignee = this.editAssignee;
       this.showToast('保存しました');
@@ -1169,6 +1257,49 @@ function app() {
     },
 
     // ── ユーティリティ ────────────────────────────────
+    // カンバンビュー用: ステータス別のカード一覧（検索条件を考慮）
+    kanbanCards(status) {
+      const q = this.searchQ.toLowerCase();
+      return this.allInquiries.filter(r => {
+        const matchStatus = r.status === status;
+        const matchQ = !q || r.corp.toLowerCase().includes(q) || r.office.toLowerCase().includes(q) ||
+                       r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q);
+        return matchStatus && matchQ;
+      });
+    },
+
+    // ステータス別カラー（カンバン用）
+    statusColor(s) {
+      return { '新規':'#3b82f6','対応中':'#f59e0b','現地訪問済':'#8b5cf6',
+               '完了':'#10b981','フォロー中':'#f97316' }[s]||'#9ca3af';
+    },
+
+    // Google Chat に問い合わせ情報を投稿
+    async postToGoogleChat(inquiry) {
+      try {
+        const msg = [
+          `📋 *問い合わせ情報 共有*`,
+          `法人名: ${inquiry.corp}`,
+          `事業所: ${inquiry.office}`,
+          `担当者: ${inquiry.name} さん`,
+          `メール: ${inquiry.email}`,
+          `電話: ${inquiry.phone||'—'}`,
+          `都道府県: ${inquiry.prefecture}`,
+          `ステータス: ${inquiry.status}`,
+          `社内担当: ${inquiry.assignee||'未設定'}`,
+          `問い合わせ内容: ${(inquiry.message||'').slice(0,100)}`,
+          `管理画面: https://kaigo-kiban-pm.web.app`,
+          `共有者: ${this.currentUser.displayName}`,
+        ].join('\n');
+        const fn = fns.httpsCallable('notifyGoogleChat');
+        const r = await fn({ message: msg });
+        if (!r.data?.success) throw new Error('送信失敗');
+        this.showToast('Google Chat に投稿しました');
+      } catch(e) {
+        this.showToast('Chat投稿エラー: ' + e.message, 'error');
+      }
+    },
+
     statusClass(s) {
       return { '新規':'bg-blue-100 text-blue-700','対応中':'bg-yellow-100 text-yellow-700',
                '現地訪問済':'bg-purple-100 text-purple-700','完了':'bg-green-100 text-green-700',
